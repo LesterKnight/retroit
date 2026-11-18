@@ -1,0 +1,1618 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<!-- RETROit. Copyright (c) 2026 Cristiano. Todos os direitos reservados. Software proprietário: não copiar, modificar nem redistribuir sem autorização por escrito (ver LICENSE). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RETROit</title>
+<style>
+:root{--bg:#0e0f13;--panel:#171922;--line:#2a2d3a;--fg:#e8e9ef;--mut:#8b8fa3;--acc:#ff5d73}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,sans-serif;display:grid;grid-template-columns:320px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--line);overflow:auto;padding:16px}
+h1{font-size:20px;margin:0 0 2px;letter-spacing:.5px}h1 b{color:var(--acc)}
+.sub{color:var(--mut);font-size:12px;margin-bottom:14px}
+h2{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut);margin:18px 0 8px}
+.row{display:grid;grid-template-columns:1fr 46px;gap:2px 8px;margin-bottom:8px}
+.row label{font-size:12px}.row output{font-size:12px;text-align:right;color:var(--mut)}.row .num{width:56px;font-size:12px;text-align:right;padding:1px 4px;box-sizing:border-box}
+.row input{grid-column:1/3;width:100%;accent-color:var(--acc)}
+select,button{width:100%;background:#20232f;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:inherit;cursor:pointer}
+button:hover{border-color:var(--acc)}
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+#saveform{margin-top:8px;padding:10px;background:#20232f;border:1px solid var(--line);border-radius:6px}#saveform input{width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:inherit}#pmsg{font-size:12px;color:var(--acc);min-height:16px;margin:6px 0 0}
+main{display:flex;flex-direction:column;gap:12px;padding:16px;overflow-x:hidden;overflow-y:auto;position:relative;min-height:0}
+.view{flex:1 0 240px;position:relative;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
+#zoomb{position:absolute;top:8px;right:8px;display:flex;gap:4px;z-index:2}#zoomb button{width:30px;height:30px;padding:0;font-size:18px;line-height:1}#stage{transform-origin:center;touch-action:none;width:100%;height:auto;max-height:100%;image-rendering:pixelated;box-shadow:0 8px 40px #000a;background:#fff;background:conic-gradient(#bbb 25%,#fff 0 50%,#bbb 0 75%,#fff 0) 0 0/16px 16px}
+#animtop[hidden]{display:none}#animtop{margin:0}body.anim #drop{display:none}#an_kd summary{cursor:pointer;font-size:12px;color:var(--mut);margin:2px 0 8px}#animwrap h2{margin:0 0 8px}.arow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:12px;margin-bottom:8px}.arow label{display:inline-flex;gap:4px;align-items:center}.arow input[type=number]{width:60px}.arow button{width:auto;padding:5px 10px}.seg{display:inline-flex}.seg button{border-radius:0}.seg button:first-child{border-radius:6px 0 0 6px}.seg button:last-child{border-radius:0 6px 6px 0;margin-left:-1px}.arow button.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}.arow input[type=range]{flex:1;min-width:120px}#an_msg{color:var(--mut)}#drop{position:absolute;top:12px;right:16px;font-size:12px;color:var(--mut)}
+
+#pipewrap h2{margin:0 0 8px}
+#pipe,#pipeOff{list-style:none;margin:0;padding:0 0 4px;display:flex;gap:8px;overflow-x:auto}
+#pipe,#pipeOff{min-height:34px;align-items:center}#pipeOff{flex-wrap:wrap;overflow:visible}#pipeOff{border:1px dashed var(--line);border-radius:8px;padding:4px}#pipeOff:empty::before{content:'Arraste uma etapa para cá para desativar';color:var(--mut);font-size:12px;padding:0 6px}#pipe:empty::before{content:'Arraste uma etapa para cá para ativar';color:var(--mut);font-size:12px;padding:0 6px}#pipeOff .stg{zoom:.7}
+.stg{flex-wrap:wrap;flex:0 0 auto;min-width:0;display:flex;align-items:center;gap:2px 8px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:grab;user-select:none}
+.stg .grip{color:var(--mut);font-size:16px}.stg .num{background:var(--acc);color:#fff;border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+.stg .nm{display:flex;flex-direction:column;min-width:0;flex:0 1 auto}.stg small{color:var(--mut);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.stg.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}.grp[hidden]{display:none}.grp h3.sub{margin:16px 0 2px;font-size:12px;font-weight:600;color:var(--mut)}.row.off{opacity:.4}
+.stg .brk{flex-basis:100%;height:0}.stg input[type=checkbox]{margin:0}.stg.off{opacity:.35;text-decoration:line-through}
+.stg.drag{opacity:.4}.stg.over{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset}
+#batch{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px}#batch[hidden]{display:none}
+.chip{display:inline-flex;align-items:center;gap:6px;width:auto;padding:4px 8px;font-size:12px;max-width:220px}.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip.act{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}.chip i{font-style:normal;color:var(--mut);padding-left:2px}.chip i:hover{color:var(--acc)}
+.atr{border:1px solid var(--line);border-radius:6px;padding:8px;margin:0 0 10px;font-size:12px}.atr[hidden],.at_r[hidden],.rdice[hidden]{display:none}.atr h3{margin:0 0 4px;font-size:11px;color:var(--mut);font-weight:600}.atr label{display:flex;gap:8px;align-items:center;margin-top:6px}.atr select{width:auto}.atr input[type=range]{flex:1}.atr input[type=number]{width:70px}.atr button{width:auto;padding:4px 8px}.at_n{color:var(--mut);margin:6px 0 0}.rdice{cursor:pointer;margin-left:6px}.mnote{font-size:12px;opacity:.75;margin:0 0 8px}#metaList{list-style:disc;padding-left:18px;margin:0 0 8px;font-size:12px}#metaList li{margin:4px 0}#metaList b{display:block;font-weight:600}#metaList input[type=text]{width:100%;box-sizing:border-box}#metaList label{display:inline-flex;gap:4px;align-items:center;margin-top:2px}#metaList em{opacity:.6;margin-left:6px}.madd{display:flex;gap:6px}.act-row{display:flex;align-items:center;gap:6px;font-size:12px;margin:-4px 0 8px}.act-row input{accent-color:var(--acc)}
+#delbox,#pio{margin-top:8px;font-size:12px}#delbox{padding:10px;background:#20232f;border:1px solid var(--line);border-radius:6px}#dmsg{color:var(--acc);margin-bottom:6px}#pio{color:var(--mut);min-height:14px}
+#swatches{margin-top:4px}.sw{display:flex;flex-wrap:wrap;gap:2px}.sw i{width:16px;height:16px;border:1px solid #0006;display:block}.swn{font-size:12px;color:var(--mut);margin:4px 0}
+dialog{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:18px;width:340px}
+dialog::backdrop{background:#000a}dialog h3{margin:0 0 10px}dialog label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
+dialog input[type=range]{width:100%;accent-color:var(--acc)}dialog input[type=color]{width:100%;height:32px;background:none;border:1px solid var(--line);border-radius:6px}
+#e_info{font-size:12px;color:var(--mut);margin:10px 0 2px}#e_msg{font-size:12px;color:var(--acc);min-height:16px;margin-bottom:6px}
+@media(max-width:760px){body{grid-template-columns:1fr;grid-template-rows:auto 60vh;height:auto}main{order:-1;height:auto;overflow:visible}}
+</style>
+</head>
+<body>
+<aside>
+  <h1>RETRO<b>it</b></h1>
+  <div class="sub">Transforma foto em visual de videogame antigo.</div>
+  <input type="file" id="file" accept="image/*" multiple hidden>
+  <input type="file" id="pfile" accept=".json,application/json" hidden>
+  <div class="btns" style="margin-top:0"><button id="open">Abrir fotos…</button><button id="dl" class="pri">Exportar…</button></div>
+  <div class="btns" style="grid-template-columns:1fr;margin-top:6px"><button id="animb">Animar…</button></div>
+  <h2>Predefinições</h2>
+  <select id="presets"></select>
+  <select id="fx" title="Efeito que soma à predefinição escolhida" style="margin-top:6px"></select>
+  <select id="combo" title="Predefinição + efeito prontos" style="margin-top:6px"></select>
+  <div class="btns"><button id="savep">Salvar atual…</button><button id="delp">Excluir</button></div>
+  <div class="btns" style="grid-template-columns:1fr"><button id="renp">Renomear…</button></div>
+  <div class="btns"><button id="pexport" title="Com uma predefinição personalizada selecionada, baixa só ela, com o nome dela; sem seleção, baixa todas as personalizadas">Exportar JSON</button><button id="pimport">Importar JSON…</button></div>
+  <div id="pio"></div>
+  <div id="delbox" hidden><div id="dmsg"></div><div class="btns"><button id="dok" class="pri">Excluir</button><button id="dcancel">Cancelar</button></div></div>
+  <form id="saveform" hidden>
+    <input id="pname" type="text" maxlength="40" placeholder="Nome da predefinição" autocomplete="off">
+    <div id="pmsg" role="alert"></div>
+    <div class="btns"><button type="submit" id="pok" class="pri">Salvar</button><button type="button" id="pcancel">Cancelar</button></div>
+  </form>
+  <div id="ctrls"></div>
+  <div class="btns"><button id="orig">Segurar: original</button><button id="rnd">Aleatório</button></div>
+  <div id="ver" title="Se este horário for antigo, o navegador está mostrando uma versão em cache: Ctrl+F5" style="font-size:11px;color:var(--mut);margin-top:10px">versão 2026-11-17 22:11</div>
+</aside>
+<main>
+  <div id="animtop" class="arow" hidden><span>Pipeline:</span><span class="seg"><button id="an_ea" type="button">Antes</button><button id="an_eb" type="button">Depois</button></span><button id="an_cp" type="button" title="Reset: Depois volta a ser uma cópia do Antes">Reset</button><span id="an_ed"></span></div>
+  <div class="view"><canvas id="stage"></canvas><div id="zoomb"><button type="button" id="zin" title="Aproximar (ou role o mouse)">+</button><button type="button" id="zout" title="Afastar">−</button></div></div>
+  <div id="batch" hidden></div>
+  <div id="pipewrap"><h2>Pipeline (clique para editar · arraste para reordenar; linha de cima = desativada)</h2><ul id="pipeOff"></ul><ul id="pipe"></ul></div>
+  <div id="animwrap" hidden>
+    <h2>Animar: pipeline de início → pipeline de fim</h2>
+    <div class="arow"><label>Duração (s) <input id="an_dur" type="number" min=".5" max="30" step=".5" value="3"></label>
+      <label>fps <input id="an_fps" type="number" min="6" max="30" step="1" value="12"></label>
+      <label>Transição <select id="an_tr"><option value="linear">Linear</option><option value="boomerang">Boomerang (vai e volta)</option><option value="random">Aleatória</option></select></label>
+      <label>Curva <select id="an_ease"><option value="linear">Linear</option><option value="in">Entra devagar</option><option value="out">Sai devagar</option><option value="inout">Entra e sai devagar</option><option value="custom">Personalizada…</option></select></label>
+      <span id="an_bez" hidden title="Arraste os pontos: os das pontas definem quando a transição começa e termina e de onde a onde ela vai (início e fim); os do meio desenham a curva"><svg id="an_bsv" viewBox="-8 -8 116 116" width="110" height="110"><rect x="0" y="0" width="100" height="100" fill="none" stroke="currentColor" opacity=".25"/><line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" opacity=".15"/><line id="an_l1" stroke="currentColor" opacity=".5"/><line id="an_l2" stroke="currentColor" opacity=".5"/><path id="an_bp" fill="none" stroke="var(--acc)" stroke-width="2.5"/><circle id="an_h1" r="5" fill="var(--acc)" style="cursor:grab"/><circle id="an_h2" r="5" fill="var(--acc)" style="cursor:grab"/><circle id="an_h0" r="6" fill="var(--bg)" stroke="var(--acc)" stroke-width="3" style="cursor:grab"/><circle id="an_h3" r="6" fill="var(--bg)" stroke="var(--acc)" stroke-width="3" style="cursor:grab"/></svg></span>
+      <label><input type="checkbox" id="an_loop" checked> Repetir</label></div>
+    
+    <details id="an_kd"><summary>Quadros-chave (curva à mão por parâmetro)</summary>
+    <div class="arow" id="an_kf"><label>Parâmetro: <select id="an_kp"></select></label>
+      <svg id="an_ksv" viewBox="-6 -6 312 112" width="312" height="112" style="touch-action:none;cursor:crosshair" title="Clique para criar um ponto; arraste para mover; duplo clique num ponto remove. Eixo x = tempo, y = valor do parâmetro."><rect x="0" y="0" width="300" height="100" fill="none" stroke="currentColor" opacity=".25"/><path id="an_kb" fill="none" stroke="currentColor" opacity=".35" stroke-dasharray="4 3"/><path id="an_kl" fill="none" stroke="var(--acc)" stroke-width="2"/><line id="an_kc" y1="0" y2="100" stroke="currentColor" opacity=".6"/><g id="an_kg"></g></svg>
+      <button id="an_kclr" type="button">Limpar faixa</button><span id="an_kinfo"></span></div>
+    </details>
+    <div class="arow"><button id="an_play">▶ Tocar</button><input type="range" id="an_scrub" min="0" max="1000" value="0"><span id="an_t"></span>
+      <button id="an_zip">Sequência PNG (ZIP)</button><label>GIF/WebM: largura <input id="an_gw" type="number" min="64" max="1600" step="16" value="480"> px</label><button id="an_gif">GIF animado</button><button id="an_webm">WebM (vídeo)</button><button id="an_json">Preset animado (JSON)</button><span id="an_msg"></span></div>
+  </div>
+  <div id="drop">Arraste, cole (Ctrl+V) ou abra uma foto</div>
+</main>
+
+<dialog id="exp">
+  <form method="dialog" id="expf">
+    <h3>Exportar imagem</h3>
+    <label>Formato</label>
+    <select id="e_fmt"><option value="png">PNG (com transparência)</option><option value="webp">WebP (com transparência, menor)</option><option value="jpg">JPG (sem transparência)</option></select>
+    <div id="e_qrow"><label>Qualidade: <output id="e_qo">90</output>%</label><input type="range" id="e_q" min="40" max="100" value="90"></div>
+    <div id="e_brow"><label>Fundo (no lugar da transparência)</label><input type="color" id="e_bg" value="#ffffff"></div>
+    <label>Tamanho</label>
+    <select id="e_scale"><option value="1">Como na tela (1x)</option><option value="2">2x</option><option value="4">4x</option><option value="0.5">Metade (50%)</option><option value="real">Pixels reais (1 bloco = 1 px)</option></select>
+    <label>Nome do arquivo (sem extensão)</label>
+    <input id="e_name" type="text" maxlength="80" autocomplete="off" placeholder="retroit">
+    <div id="e_info"></div>
+    <div id="e_msg" role="status"></div>
+    <div class="btns"><button type="button" id="e_dl" class="pri" title="Baixa direto, com o nome do campo, na pasta de downloads do navegador">Baixar</button><button type="button" id="e_dl2" title="Abre a janela do sistema para escolher a pasta e o nome (Chrome e Edge)">Salvar como…</button></div>
+    <button type="button" id="e_copy" style="margin-top:6px">Copiar imagem</button>
+    <button type="button" id="e_all" class="pri" style="margin-top:6px" hidden>Exportar todas em ZIP</button>
+    <button type="button" id="e_close" style="margin-top:6px">Fechar</button>
+  </form>
+</dialog>
+<script type="text/x-glsl" id="fragsrc">
+#version 330
+// RETROit: todas as etapas num fragment shader só (Caminho 2, fase 1).
+// O script roda UMA passada por etapa, na ordem do preset, escolhida por u_stage
+// (etapas como NTSC e Distorção leem pixels vizinhos, então não cabem num laço de uma passada).
+// Entrada e saída em sRGB (bytes), RGBA8 entre as passadas, como o canvas do JS.
+// Nomes dos uniforms = chaves do preset JSON (ver spec/Formato do preset.md).
+// Referência numérica: a versão JS em retroit.html (stColor, stPixel, ...).
+
+uniform sampler2D u_tex;   // imagem de entrada da passada
+uniform sampler2D u_pal;   // paleta, 256x1 (RGB em bytes)
+uniform int   u_stage;     // ver S_* abaixo
+uniform ivec2 u_out;       // tamanho da saída desta passada
+uniform ivec2 u_full;      // tamanho da imagem de trabalho (W,H)
+uniform int   u_frame;
+uniform int   u_seed;
+uniform int   u_rpx;       // R.px: pixel escalado pela resolução
+uniform float u_dot;       // R.dot: ponto do halftone escalado
+uniform float u_ratio;     // escala dos px (largura / 1600, mínimo 1)
+uniform int   u_pixOff;    // 1 se a etapa Pixel está desligada
+uniform int   u_palN;      // nº de cores em u_pal
+
+// parâmetros do preset (mesmo nome das chaves)
+uniform int   bits;  uniform int dither;  uniform float ditherAmt;  uniform float soft;
+uniform int   down;  uniform int alpha;
+uniform float gamma; uniform float lift;  uniform float sat; uniform float contrast;
+
+uniform float palDither;
+uniform int   ntChroma; uniform int ntDelay; uniform float ntRing; uniform int ntSmear;
+uniform int ntVary; uniform float ntChromaGain; uniform float ntEdge; uniform float ntFieldNoise; uniform float ntBurst; uniform int ntTrackH; uniform float ntTrackSnow; uniform float ntBand; uniform int ntLumaV; uniform int ntChromaV; uniform float ntInterlace; uniform int ntRs; uniform float ntPhase; uniform int ntHeadH; uniform int ntHeadShift; uniform float ntNoise;  uniform int ntGrain; uniform float ntCNoise; uniform float ntSnow; uniform int ntWave;
+uniform float dsBarrel; uniform float dsZoom; uniform float dsWaveX; uniform float dsWaveY; uniform float dsWaveFreq;
+uniform float dsGlitch; uniform float dsGlitchSize; uniform float dsRgb; uniform float dsJitter; uniform float dsPhase;
+uniform float halftone; uniform float angle; uniform float tonR; uniform float tonG; uniform float tonB; uniform float crt; uniform float crtMask; uniform float crtBloom; uniform float crtCorner; uniform float crtMaskW; uniform float crtMaskX; uniform float crtMaskH; uniform float crtMaskY; uniform float crtMaskYInt; uniform float crtMaskR; uniform float crtLock; uniform float crtStagger;
+uniform float scan; uniform int scanPx; /* scanPx: pixels por linha de TV (0 = automático) */ uniform float vig; uniform float noise;
+
+out vec4 o;
+
+const int S_COLOR=0, S_PIXDOWN=1, S_PIXUP=2, S_PALETTE=3, S_NTSC=4, S_DISTORT=5,
+          S_HALFTONE=6, S_SCAN=7, S_VIG=8, S_NOISE=9, S_CRT=10;
+const float PI=3.14159265358979;
+
+const int B4[16]=int[16](0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5);
+const int B8[64]=int[64](0,32,8,40,2,34,10,42,48,16,56,24,50,18,58,26,12,44,4,36,14,46,6,38,60,28,52,20,62,30,54,22,
+  3,35,11,43,1,33,9,41,51,19,59,27,49,17,57,25,15,47,7,39,13,45,5,37,63,31,55,23,61,29,53,21);
+
+// ---- util ----
+uint hu(uint x){x^=x>>16;x*=0x7feb352dU;x^=x>>15;x*=0x846ca68bU;x^=x>>16;return x;}
+float rnd(int a,int b,int c){ // 0..1, determinístico por (a,b,c,seed)
+  uint h=hu(uint(a)*0x9E3779B1U^hu(uint(b)+0x85EBCA6BU^hu(uint(c)*0xC2B2AE35U+uint(u_seed))));
+  return float(h>>8)/16777216.0;}
+float rf(int a,int b){return rnd(a,b,u_frame);}
+float rn(int a,int b){return rnd(a,b,ntVary==1?u_frame:0);} // ruído do NTSC: só varia por quadro com a flag
+int rnd_i(float v){return int(floor(v+0.5));}   // Math.round
+int scl(int v){return rnd_i(float(v)*u_ratio);}  // sc() do NTSC
+ivec2 isz(){return textureSize(u_tex,0);}
+vec4 F(ivec2 p){p=clamp(p,ivec2(0),isz()-1);return texelFetch(u_tex,p,0);}
+float luma(vec3 c){return c.r*.299+c.g*.587+c.b*.114;}
+
+// ---- cor ----
+vec4 stColor(vec4 c){
+  vec3 base=c.rgb;
+  // tonalidade: um ganho por canal (0 a 2, padrao 1) aplicado aos valores originais, antes da gama; qualquer tom da combinacao RGB
+  if(tonR!=1.||tonG!=1.||tonB!=1.) base=clamp(base*vec3(tonR,tonG,tonB),0.,1.);
+  vec3 v=pow(base,vec3(gamma));
+  float l=luma(v);
+  v=vec3(l)+(v-vec3(l))*sat;
+  v=(v-.5)*contrast+.5;
+  if(lift!=0.) v=lift+v*(1.-lift);
+  return vec4(clamp(v,0.,1.),c.a);}
+
+// ---- pixel, passada 1: saída no tamanho pequeno (sw x sh); média por bloco + quantização + dither ----
+vec4 stPixDown(ivec2 p){
+  ivec2 W=u_full,S=u_out;
+  vec4 c;
+  if(down==1){ // nearest
+    ivec2 q=((2*p+1)*W)/(2*S);
+    c=F(q);
+  }else{
+    ivec2 a=(p*W)/S;
+    ivec2 b=max(a+1,((p+1)*W)/S);
+    b=min(b,W);a=min(a,W-1);b=max(b,a+1);
+    vec4 acc=vec4(0);float wa=0.;
+    for(int y=a.y;y<b.y;y++)for(int x=a.x;x<b.x;x++){vec4 t=F(ivec2(x,y));acc.rgb+=t.rgb*t.a;acc.a+=t.a;wa+=1.;}
+    float aa=acc.a;
+    c=vec4(aa>0.?acc.rgb/aa:vec3(0),aa/wa);
+  }
+  c.rgb=floor(c.rgb*255.+.5)/255.;c.a=floor(c.a*255.+.5)/255.; // o JS guarda a média em bytes
+  float n=float((1<<bits)-1);
+  int ms=dither==2?8:4;
+  float da=dither==0?0.:ditherAmt;
+  float mv=dither==2?(float(B8[(p.y%8)*8+(p.x%8)])+.5)/64.:(float(B4[(p.y%4)*4+(p.x%4)])+.5)/16.;
+  float m=.5+(mv-.5)*da;
+  vec3 q=clamp(floor(c.rgb*255./255.*n+m),0.,n)/n;
+  float a=c.a;
+  if(alpha==0) a=(c.a*255.>=128.)?1.:0.;
+  return vec4(q,a);}
+
+// ---- pixel, passada 2: amplia o pequeno (u_tex) para W x H ----
+vec4 smallAt(ivec2 q){return F(q);}
+vec4 stPixUp(ivec2 p){
+  int px=u_rpx;
+  vec4 nr=smallAt(p/px);
+  if(soft<=0.) return nr;
+  vec2 f=(vec2(p)+.5)/float(px)-.5;
+  ivec2 i0=ivec2(floor(f));vec2 t=f-vec2(i0);
+  vec4 bl=mix(mix(smallAt(i0),smallAt(i0+ivec2(1,0)),t.x),mix(smallAt(i0+ivec2(0,1)),smallAt(i0+ivec2(1,1)),t.x),t.y);
+  float k=1.-soft*.75;
+  return mix(bl,nr,k);}
+
+// ---- paleta ----
+vec3 palAt(int i){return texelFetch(u_pal,ivec2(i,0),0).rgb*255.;}
+vec4 stPalette(ivec2 p,vec4 c){
+  if(c.a*255.<1.) return c;
+  int cell=u_pixOff==1?1:max(1,u_rpx);
+  float amp=255./pow(float(u_palN),1./3.)*palDither;
+  int cy=(p.y/cell)&3,cx=(p.x/cell)&3;
+  float off=((float(B4[cy*4+cx])+.5)/16.-.5)*amp;
+  vec3 rgb=clamp(c.rgb*255.+off,0.,255.);
+  vec3 b=floor(rgb/8.)*8.+4.;
+  int bi=0;float bd=1e9;
+  for(int i=0;i<u_palN;i++){
+    vec3 d=b-palAt(i);
+    float e=d.r*d.r*.3+d.g*d.g*.59+d.b*d.b*.11;
+    if(e<bd){bd=e;bi=i;}
+  }
+  return vec4(palAt(bi)/255.,c.a);}
+
+// ---- NTSC / VHS (YIQ) ----
+// Tudo em escala de bytes (0..255) como no JS.
+vec3 toYIQ(vec3 c){return vec3(.299*c.r+.587*c.g+.114*c.b,.596*c.r-.274*c.g-.322*c.b,.211*c.r-.523*c.g+.312*c.b);}
+int gdx;int gy;int gW;
+vec3 yiqAt(int x){ // YIQ na linha atual, depois do deslocamento da onda de borda
+  x=clamp(x,0,gW-1);
+  int sx=clamp(x-gdx,0,gW-1);
+  return toYIQ(texelFetch(u_tex,ivec2(sx,gy),0).rgb*255.);}
+float ypAt(int x,int r1){ // luma depois do smear, ou do passa-baixa de banda (ntBand)
+  if(ntBand>0.){
+    float num=0.,den=0.;
+    for(int i=-8;i<=8;i++){float h=(i==0)?2.*ntBand:sin(2.*PI*ntBand*float(i))/(PI*float(i)),w=.54+.46*cos(PI*float(i)/9.),c=h*w;num+=c*yiqAt(clamp(x+i,0,gW-1)).x;den+=c;}
+    return num/den;}
+  if(r1<1) return yiqAt(x).x;
+  float s=0.;for(int k=-r1;k<=r1;k++)s+=yiqAt(x+k).x;return s/float(2*r1+1);}
+float lumaRow(int x,int r1){ // luma da linha gy: banda ou smear, mais ringing
+  float Y=ypAt(x,r1);
+  if(ntRing>0.){int r2=max(1,scl(2));float s=0.;for(int k=-r2;k<=r2;k++)s+=ypAt(clamp(x+k,0,gW-1),r1);float bl=s/float(2*r2+1);Y=Y+ntRing*1.5*(Y-bl);}
+  return Y;}
+float vn(int gx,int y,int k){ // 3 linhas com pesos 1; 1,8; 1 (correlação vertical medida no ntsc-rs), reescalada para o desvio de uma linha só
+  int a=max(0,y-1),b=min(isz().y-1,y+1);
+  return (rn(gx,a*5+k)+1.8*rn(gx,y*5+k)+rn(gx,b*5+k)-1.9)*(2./sqrt(5.24));}
+int rowShift(int y){ // deslocamento horizontal da linha: onda de borda, cabeça de fita e campo ímpar
+  int d=0,wave=scl(ntWave);
+  if(wave>0){float n=sin(float(y)*.11)*.5+sin(float(y)*.037+1.3)*.3+(rnd(y,7,ntVary==1?u_frame:0)-.5)*.4;d=rnd_i(n*float(wave));}
+  if(ntRs==1&&ntHeadH>0){
+    int hh=scl(ntHeadH),hsh=scl(ntHeadShift);float t=(float(y)-float(isz().y-hh))/float(hh);
+    if(t>0.) d+=rnd_i(float(hsh)*t*t+(rn(y,8)-.5)*.3*float(hsh));
+  }
+  if(ntInterlace>0.&&(y&1)==1) d+=rnd_i(ntInterlace*3.*u_ratio);
+  return d;}
+vec4 stNtsc(ivec2 p){
+  gW=isz().x;gy=p.y;int x=p.x;
+  gdx=rowShift(p.y);
+  int r1=scl(ntSmear);
+  float Y;
+  if(ntLumaV>0){ // borrão vertical da luma, cada linha com o seu deslocamento horizontal
+    int hv=ntLumaV>=2?2:1;float num=0.,den=0.;
+    for(int k=-hv;k<=hv;k++){
+      int yy=clamp(p.y+k,0,isz().y-1);gy=yy;gdx=rowShift(yy);
+      float wgt=(hv==1)?((k==0)?2.:1.):((k==0)?6.:(abs(k)==1?4.:1.));
+      num+=wgt*lumaRow(x,r1);den+=wgt;}
+    Y=num/den;gy=p.y;gdx=rowShift(p.y);
+  }else Y=lumaRow(x,r1);
+  int cr=scl(ntChroma),dl=scl(ntDelay);
+  int xc=dl>0?max(0,x-dl):x;
+  vec2 iq;
+  int cv=scl(ntChromaV);
+  if(cv>1){ // vazamento vertical: média de cv linhas (y-cv/2 .. y+cv/2-1), cada uma com o seu deslocamento horizontal
+    int lo=-(cv/2),hi=cv-cv/2-1;vec2 acc=vec2(0);
+    for(int kk=lo;kk<=hi;kk++){
+      int yy=clamp(p.y+kk,0,isz().y-1);gy=yy;gdx=rowShift(yy);vec2 s=vec2(0);
+      if(cr<1) s=yiqAt(xc).yz;
+      else{for(int k=-cr;k<=cr;k++)s+=yiqAt(xc+k).yz;s/=float(2*cr+1);}
+      acc+=s;}
+    iq=acc/float(cv);gy=p.y;gdx=rowShift(p.y);
+  }else{
+    if(cr<1) iq=yiqAt(xc).yz;
+    else{vec2 s=vec2(0);for(int k=-cr;k<=cr;k++)s+=yiqAt(xc+k).yz;iq=s/float(2*cr+1);}
+  }
+  iq*=ntChromaGain;
+  if(ntEdge>0.){ // transitório do filtro na borda esquerda (perfil medido no ntsc-rs)
+    int xi=int(floor(float(x)/u_ratio));
+    if(xi<10){float S[10]=float[10](.105,.445,.877,1.185,1.295,1.257,1.166,1.085,1.031,1.007);Y*=1.+ntEdge*(S[xi]-1.);}
+  }
+  float fm=1.+ntFieldNoise*(((p.y&1)==1)?-1.:1.);
+  float amp=ntNoise*255.*fm,ampc=ntCNoise*255.*fm;
+  int g=max(1,scl(ntGrain)),gc=g*2;
+  if(ntRs==1){ // ruído por hash correlacionado entre 3 linhas (igual ao JS)
+    if(ntPhase>0.){ // uma rotação de croma por linha, vizinhança de 6 linhas (veios horizontais de cor)
+      float a=0.;for(int i=-2;i<=3;i++){int yy=clamp(p.y+i,0,isz().y-1);float w=(i==-2||i==3)?1.:((i==-1||i==2)?2.:3.);a+=w*rn(0,yy*5+3);}
+      float th=(a-6.)*(2./sqrt(28.))*ntPhase,c=cos(th),s2=sin(th);iq=vec2(iq.x*c-iq.y*s2,iq.x*s2+iq.y*c);
+    }
+    if(amp>0.) Y+=vn(x/g,p.y,0)*amp;
+    if(ampc>0.){iq.x+=vn(x/gc,p.y,1)*ampc;iq.y+=vn(x/gc,p.y,2)*ampc;}
+  }else{
+    if(amp>0.) Y+=(rn(x/g,p.y*3+0)-.5)*2.*amp;
+    if(ampc>0.){iq.x+=(rn(x/gc,p.y*3+1)-.5)*2.*ampc;iq.y+=(rn(x/gc,p.y*3+2)-.5)*2.*ampc;}
+  }
+  if(ntSnow>0.){ // no máximo um risco por linha
+    float pr=min(1.,ntSnow*4.);
+    if(rn(p.y,901)<pr){
+      int x0=int(floor(rn(p.y,902)*float(gW)));
+      int len=max(2,scl(int(floor(4.+rn(p.y,903)*26.))));
+      if(x>=x0&&x<x0+len){float t=1.-float(x-x0)/float(len);Y=Y+(255.-Y)*t;iq*=1.-t;}
+    }
+  }
+  if(ntBurst>0.&&rn(0,960)<ntBurst){ // rajada de ruído: 3 linhas com ruído forte quase na largura toda
+    int th=scl(ntTrackH),rc=1+int(floor(rn(0,961)*float(max(1,isz().y-th-3))));
+    int x0=int(floor(rn(0,962)*.15*float(gW))),span=int(floor((.75+rn(0,963)*.25)*float(gW)));
+    int dy=p.y-rc;
+    if(abs(dy)<=1&&x>=x0&&x<x0+span){float u=rn(x,p.y*7+8);Y+=clamp(2.5*(u-.5),0.,1.)*255.*((dy==0)?1.:.5);}
+  }
+  if(ntTrackH>0&&ntTrackSnow>0.){ // ruído de rastreio: faixa no rodapé (igual ao JS)
+    int th=scl(ntTrackH);
+    if(p.y>=isz().y-th){
+      float sev=rn(p.y,950);sev*=sev;int gx=x/max(1,scl(3));
+      if(rn(gx,p.y*7+4)<ntTrackSnow*sev*2.){
+        float u=rn(gx,p.y*7+5);Y+=255.*u*u*u;
+        iq.x+=(rn(gx,p.y*7+6)-.5)*160.;iq.y+=(rn(gx,p.y*7+7)-.5)*160.;
+      }
+    }
+  }
+  float i=iq.x,q=iq.y;
+  vec3 rgb=vec3(Y+.956*i+.621*q,Y-.272*i-.647*q,Y-1.106*i+1.703*q);
+  int sx=clamp(x-gdx,0,gW-1);
+  float a=texelFetch(u_tex,ivec2(sx,gy),0).a;
+  return vec4(clamp(rgb/255.,0.,1.),a);}
+
+// ---- distorção ----
+bool gotS;
+vec4 getS(vec2 s){ // amostra nearest; fora da imagem => alpha<0
+  ivec2 q=ivec2(floor(s+.5));
+  if(q.x<0||q.y<0||q.x>=u_full.x||q.y>=u_full.y){gotS=false;return vec4(0);}
+  gotS=true;return texelFetch(u_tex,q,0);}
+vec4 stDistort(ivec2 p){
+  int W=u_full.x,H=u_full.y;
+  float rt=u_ratio;
+  float ax=dsWaveX*rt,ay=dsWaveY*rt,ph=dsPhase*2.*PI,rgb=dsRgb*rt;
+  int slice=max(1,rnd_i(dsGlitchSize*rt));
+  float cx=float(W)/2.,cy=float(H)/2.;
+  float u=(float(p.x)-cx)/cx,v=(float(p.y)-cy)/cy;
+  if(dsBarrel!=0.){float r2=u*u+v*v;float f=1.+dsBarrel*r2+dsBarrel*2.*r2*r2;u*=f;v*=f;}
+  u/=dsZoom;v/=dsZoom;
+  float sx=cx+u*cx,sy=cy+v*cy;
+  if(ax!=0.) sx+=ax*sin(2.*PI*(float(p.y)/float(H))*dsWaveFreq+ph);
+  if(ay!=0.) sy+=ay*sin(2.*PI*(float(p.x)/float(W))*dsWaveFreq+ph);
+  if(dsGlitch>0.){
+    int si=p.y/slice; int ps=int(floor(dsPhase*1000.+.5));
+    bool on=rnd(si,11,ps)<dsGlitch;
+    if(on) sx+=float(rnd_i((rnd(si,12,ps)-.5)*2.*float(W)*.12*dsGlitch));
+  }
+  if(dsJitter>0.) sx+=float(rnd_i((rnd(p.y,21,int(floor(dsPhase*1000.+.5)))-.5)*2.*dsJitter*rt));
+  vec4 g=getS(vec2(sx,sy));
+  if(!gotS) return vec4(0);
+  float r=g.r,b=g.b;
+  if(rgb!=0.){
+    vec4 gr=getS(vec2(sx-rgb,sy));r=gotS?gr.r:0.;
+    vec4 gb=getS(vec2(sx+rgb,sy));b=gotS?gb.b:0.;
+  }
+  return vec4(r,g.g,b,g.a);}
+
+// ---- halftone, linhas, vinheta, ruído ----
+vec4 stHalftone(ivec2 p,vec4 c){
+  float t=angle*PI/180.,ct=cos(t),st=sin(t),tp=2.*PI/u_dot;
+  float x=float(p.x),y=float(p.y);
+  float u=(x*ct+y*st)*tp,v=(-x*st+y*ct)*tp,cc=(cos(u)+cos(v)+2.)/4.;
+  float tone=luma(c.rgb),ink=clamp((cc-tone)/.08+.5,0.,1.),f=1.-halftone*ink;
+  return vec4(c.rgb*f,c.a);}
+vec4 stScan(ivec2 p,vec4 c){
+  float per=u_pixOff==1?4.:float(max(2,u_rpx*2));
+  if(scanPx>0) per=float(max(2,int(floor(float(scanPx)*u_ratio+.5))*2));
+  float f=1.-scan*(.5+.5*cos(float(p.y)*2.*PI/per));
+  return vec4(c.rgb*f,c.a);}
+vec4 stVig(ivec2 p,vec4 c){
+  float vy=(float(p.y)/float(u_full.y)-.5)*2.,vx=(float(p.x)/float(u_full.x)-.5)*2.;
+  float f=1.-vig*((vx*vx+vy*vy)/2.);
+  return vec4(c.rgb*f,c.a);}
+vec4 stNoise(ivec2 p,vec4 c){
+  float nz=(rnd(p.x,p.y,u_frame)-.5)*noise;  // (rand-.5)*255*noise em bytes
+  return vec4(clamp(c.rgb+nz,0.,1.),c.a);}
+
+// ---- CRT: tudo em escala de pixel (nunca free style). Os cantos da tela andam em BLOCOS INTEIROS do tamanho do pixel do preset (rb); a curvatura e da etapa Distorcao,
+// o bloom soma copias deslocadas em passos inteiros e a mascara e feita de celulas R, G, B com cantos arredondados de 1 a 3 px (pixel art).
+// `crt` (0..1) escala tudo. crtLock=1 prende o triplete ao bloco do pixel: cada bloco vira 3 colunas.
+vec3 crtSi(ivec2 q){
+  if(q.x<0||q.y<0||q.x>=u_full.x||q.y>=u_full.y) return vec3(0.);
+  return texelFetch(u_tex,q,0).rgb;}
+vec4 stCrt(ivec2 p){
+  int rb=u_pixOff==1?1:max(1,u_rpx);
+  vec2 fl=vec2(u_full);
+  ivec2 bp=p/rb,po=p-bp*rb;
+  vec2 bc=(vec2(bp*rb)+float(rb)*.5)/fl*2.-1.;
+  float cr=crt*crtCorner;
+  vec2 uv=bc;   // sem curvatura: ela ja existe na etapa Distorcao (dsBarrel)
+  if(abs(uv.x)>1.||abs(uv.y)>1) return vec4(0.,0.,0.,1.);
+  vec2 q=max(abs(uv)-vec2(1.-cr),vec2(0.));
+  if(length(q)>cr) return vec4(0.,0.,0.,1.);
+  vec2 sp=(uv*.5+.5)*fl-.5;
+  ivec2 so=ivec2(floor(sp/float(rb)))*rb+po;
+  vec3 c=crtSi(so);
+  int o1=rb,o2=2*rb;
+  vec3 s1=crtSi(so+ivec2(o1,0))+crtSi(so-ivec2(o1,0))+crtSi(so+ivec2(0,o1))+crtSi(so-ivec2(0,o1));
+  vec3 s2=crtSi(so+ivec2(o2,0))+crtSi(so-ivec2(o2,0))+crtSi(so+ivec2(0,o2))+crtSi(so-ivec2(0,o2));
+  vec3 b=(c*2.+s1+s2*.5)/8.;
+  vec3 rgb=c+crt*crtBloom*.9*max(b-.45,vec3(0.));
+  float a=1.-crt*crtMask;
+  int idx,cx,cw,ly=0,ch=0;
+  bool inRow=true,gapx=false;
+  if(crtLock>.5){
+    int lx=(p.x+((crtStagger>.5&&(bp.y&1)==1)?rb/2:0))%rb;   // fileiras alternadas deslocadas meia celula (mascara de pontos)
+    idx=min(2,(lx*3)/rb);
+    int x0=(idx*rb)/3,x1=((idx+1)*rb)/3;
+    cw=max(1,x1-x0);cx=lx-x0;
+    int gxx=min(max(0,int(floor(crtMaskX+.5))),cw-1);   // separacao horizontal: os ultimos gxx pixels de cada coluna ficam apagados
+    gapx=cx>=cw-gxx;cw-=gxx;
+    int gy=clamp(int(floor(crtMaskY+.5)),0,rb-1);
+    if(gy>0){ly=p.y%rb;ch=rb-gy;inRow=ly<ch;}
+  }else{
+    int mw=max(1,int(floor(crtMaskW+.5)));
+    int mh=int(floor(crtMaskH+.5)),gy=max(0,int(floor(crtMaskY+.5)));
+    int rowi=(mh>0&&gy>0)?p.y/(mh+gy):p.y/mw;
+    int pw=mw+max(0,int(floor(crtMaskX+.5)));
+    int px=p.x+((crtStagger>.5&&(rowi&1)==1)?(3*pw)/2:0);
+    idx=(px/pw)%3;cw=mw;cx=px%pw;gapx=cx>=mw;
+    if(mh>0&&gy>0){ly=p.y%(mh+gy);ch=mh;inRow=ly<mh;}
+  }
+  float cover=1.;
+  int R=int(floor(crtMaskR+.5));
+  if(R>0&&ch>0&&inRow&&!gapx){
+    int dxc=min(cx,cw-1-cx),dyc=min(ly,ch-1-ly);
+    if(dxc<R&&dyc<R){
+      float d=length(vec2(float(R)-(float(dxc)+.5),float(R)-(float(dyc)+.5)));
+      cover=floor(clamp(float(R)+.5-d,0.,1.)*2.+.5)/2.;}}
+  vec3 m=vec3(a);
+  float lit=mix(a,1.,cover);
+  if(idx==0)m.r=lit; else if(idx==1)m.g=lit; else m.b=lit;
+  if(gapx)m=vec3(a);
+  if(!inRow) m*=1.-crt*crtMaskYInt*(crtStagger>.5?1.-.85*clamp(luma(c),0.,1.):1.);   // so no modo CRT (stagger): o vao entre fileiras fecha onde o pixel e claro (o feixe vaza para o vao); no LCD o vao e constante
+  rgb*=m*(1.+crt*crtMask*.5);
+  return vec4(clamp(rgb,0.,1.),1.);}
+
+void main(){
+  ivec2 p=ivec2(gl_FragCoord.xy);   // linha 0 = primeira linha do quadro (sem inverter)
+  vec4 c=vec4(0);
+  if(u_stage==S_PIXDOWN) {o=stPixDown(p);return;}
+  if(u_stage==S_PIXUP)   {o=stPixUp(p);return;}
+  if(u_stage==S_NTSC)    {o=stNtsc(p);return;}
+  if(u_stage==S_DISTORT) {o=stDistort(p);return;}
+  if(u_stage==S_CRT)     {o=stCrt(p);return;}
+  c=F(p);
+  if(u_stage==S_COLOR)         o=stColor(c);
+  else if(u_stage==S_PALETTE)  o=stPalette(p,c);
+  else if(u_stage==S_HALFTONE) o=stHalftone(p,c);
+  else if(u_stage==S_SCAN)     o=stScan(p,c);
+  else if(u_stage==S_VIG)      o=stVig(p,c);
+  else if(u_stage==S_NOISE)    o=stNoise(p,c);
+  else o=c;}
+</script>
+<script>
+const DEF={pixel:4,down:'box',bits:5,dither:'bayer4',ditherAmt:1,gamma:1,lift:0,sat:1,contrast:1,tonR:1,tonG:1,tonB:1,halftone:0,dot:8,angle:45,scan:0,scanPx:0,crt:0,crtMask:.5,crtBloom:.4,crtCorner:.05,crtMaskW:3,crtMaskX:0,crtMaskH:0,crtMaskY:1,crtMaskYInt:.5,crtMaskR:1,crtLock:0,crtStagger:0,fpOn:0,fpLines:240,fpBlock:6,vig:0,noise:0,soft:0,alpha:'hard',palette:'snes',palColors:16,palDither:.5,ntOn:0,ntChroma:6,ntDelay:2,ntRing:.3,ntSmear:1,ntNoise:.08,ntGrain:2,ntCNoise:.04,ntSnow:.004,ntWave:3,ntVary:0,ntRs:0,ntPhase:0,ntHeadH:0,ntHeadShift:6,ntChromaV:0,ntInterlace:0,ntBand:0,ntLumaV:0,ntTrackH:0,ntTrackSnow:0,ntEdge:0,ntFieldNoise:0,ntBurst:0,ntChromaGain:1,dsOn:0,dsBarrel:0,dsZoom:1,dsWaveX:0,dsWaveY:0,dsWaveFreq:4,dsGlitch:0,dsGlitchSize:12,dsRgb:0,dsJitter:0,dsPhase:0,order:['color','pixel','palette','ntsc','distort','halftone','scan','vig','noise'],off:[]};
+// Paletas
+const hex=a=>a.map(h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)));
+const PALS={
+ snes:{n:'SNES / GBA / GBC (15 bits, limite de cores)',bits:5,limit:true},
+ md:{n:'Mega Drive (9 bits, até 512 cores)',bits:3,limit:true},
+ sms:{n:'Master System (6 bits, 64 cores)',bits:2,limit:true},
+ adaptive:{n:'Adaptativa (24 bits, N cores)',bits:8,limit:true},
+ nes:{n:'NES (54 cores, 2C02G do nesdev)',list:hex(['#626262','#012090','#240ba0','#470090','#600062','#6a0024','#601100','#472700','#243c00','#014a00','#004f00','#004724','#003662','#000000','#ababab','#1f56e1','#4d39ff','#7e23ef','#a31bb7','#b42264','#ac370e','#8c5500','#5e7200','#2d8800','#079000','#008947','#00739d','#ffffff','#67acff','#958dff','#c875ff','#f26aff','#ff6fc5','#ff836a','#e6a01f','#b8bf00','#85d801','#5be335','#45de88','#49cae3','#4e4e4e','#bfe0ff','#d1d3ff','#e6c9ff','#f7c3ff','#ffc4ee','#ffcbc9','#f7d7a9','#e6e397','#d1ee97','#bff3a9','#b5f2c9','#b5ebee','#b8b8b8'])},
+ gb:{n:'Game Boy (4 verdes)',list:hex(['#0f380f','#306230','#8bac0f','#9bbc0f'])},
+ gbp:{n:'Game Boy Pocket (4 cinzas)',list:hex(['#000000','#555555','#aaaaaa','#ffffff'])},
+ bw:{n:'Preto e branco (1 bit)',list:hex(['#000000','#ffffff'])},
+ cga0:{n:'CGA (verde/vermelho/amarelo)',list:hex(['#000000','#55ff55','#ff5555','#ffff55'])},
+ cga1:{n:'CGA (ciano/magenta/branco)',list:hex(['#000000','#55ffff','#ff55ff','#ffffff'])},
+ ega:{n:'EGA (16 cores)',list:hex(['#000000','#0000aa','#00aa00','#00aaaa','#aa0000','#aa00aa','#aa5500','#aaaaaa','#555555','#5555ff','#55ff55','#55ffff','#ff5555','#ff55ff','#ffff55','#ffffff'])},
+ cpc:{n:'Amstrad CPC (27 cores)',list:[0,128,255].flatMap(r=>[0,128,255].flatMap(g=>[0,128,255].map(b=>[r,g,b])))},
+ zx:{n:'ZX Spectrum (15 cores)',list:hex(['#000000','#0000d7','#d70000','#d700d7','#00d700','#00d7d7','#d7d700','#d7d7d7','#0000ff','#ff0000','#ff00ff','#00ff00','#00ffff','#ffff00','#ffffff'])},
+ apple2:{n:'Apple II (15 cores)',list:hex(['#000000','#722640','#40337f','#e434fe','#0e5940','#808080','#1b9afe','#bfb3ff','#404c00','#e46501','#f1a6bf','#1bcb01','#bfcc80','#8dd9bf','#ffffff'])},
+ msx:{n:'MSX / TMS9918 (15 cores)',list:hex(['#000000','#21c842','#5edc78','#5455ed','#7d76fc','#d4524d','#42ebf5','#fc5554','#ff7978','#d4c154','#e6ce80','#21b03b','#c95bba','#cccccc','#ffffff'])},
+ c64:{n:'Commodore 64 (16 cores)',list:hex(['#000000','#ffffff','#68372b','#70a4b2','#6f3d86','#588d43','#352879','#b8c76f','#6f4f25','#433900','#9a6759','#444444','#6c6c6c','#9ad284','#6c5eb5','#959595'])},
+ pico8:{n:'PICO-8 (16 cores)',list:hex(['#000000','#1d2b53','#7e2553','#008751','#ab5236','#5f574f','#c2c3c7','#fff1e8','#ff004d','#ffa300','#ffec27','#00e436','#29adff','#83769c','#ff77a8','#ffccaa'])}
+};
+const PALOPTS=Object.keys(PALS).map(k=>[k,PALS[k].n]);
+let lastPal=[];
+const snapC=(v,bits)=>{const l=(1<<bits)-1;return Math.round(v/255*l)/l*255};
+function medianCut(s,n){
+  let boxes=[s];
+  const rng=b=>{let mn=[255,255,255],mx=[0,0,0];for(const p of b)for(let c=0;c<3;c++){if(p[c]<mn[c])mn[c]=p[c];if(p[c]>mx[c])mx[c]=p[c]}return [0,1,2].map(c=>mx[c]-mn[c])};
+  while(boxes.length<n){
+    let bi=-1,best=0,bc=0;
+    boxes.forEach((b,i)=>{if(b.length<2)return;const r=rng(b),m=Math.max(...r);if(m>best){best=m;bi=i;bc=r.indexOf(m)}});
+    if(bi<0)break;
+    const b=boxes[bi].sort((p,q)=>p[bc]-q[bc]),h=b.length>>1;
+    boxes.splice(bi,1,b.slice(0,h),b.slice(h));
+  }
+  return boxes.map(b=>{const a=[0,0,0];for(const p of b)for(let c=0;c<3;c++)a[c]+=p[c];return a.map(v=>v/b.length)});
+}
+function paletteFor(d){
+  const def=PALS[P.palette];
+  if(def.list)return def.list;
+  const smp=[],step=Math.max(1,Math.floor(d.length/4/20000));
+  for(let i=0;i<d.length;i+=4*step)if(d[i+3]>=128)smp.push([d[i],d[i+1],d[i+2]]);
+  if(!smp.length)return [[0,0,0]];
+  const out=[],seen=new Set();
+  for(const c of medianCut(smp,Math.min(P.palColors,1<<(def.bits*3)))){
+    const q=c.map(v=>Math.round(snapC(v,def.bits))),k=q.join(',');
+    if(!seen.has(k)){seen.add(k);out.push(q)}
+  }
+  return out;
+}
+function showSwatches(){
+  const box=$('swatches');if(!box)return;
+  box.innerHTML='';
+  if(P.off.includes('palette')||!lastPal.length)return;
+  const h=document.createElement('div');h.className='sw';
+  lastPal.forEach(c=>{const s=document.createElement('i');const x='#'+c.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');s.style.background=x;s.title=x;h.appendChild(s)});
+  const t=document.createElement('div');t.className='swn';t.textContent=lastPal.length+' cores';
+  const b=document.createElement('button');b.textContent='Copiar HEX';b.onclick=()=>{const txt=lastPal.map(c=>'#'+c.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('')).join('\n');navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>{b.textContent='Copiado!';setTimeout(()=>b.textContent='Copiar HEX',1200)},()=>{})};
+  box.append(h,t,b);
+}
+
+const SL=[
+ ['pixel','Pixel + cor reduzida',[['pixel','Tamanho do pixel (px)',1,16,1],['bits','Bits por canal (5 = 15 bits)',1,8,1],['ditherAmt','Força do dither',0,1,.05],['soft','Suavizar pixel',0,1,.05]]],
+ ['color','Cor',[['gamma','Gama (>1 escurece)',.5,2,.05],['lift','Levantar sombras',0,.25,.01],['sat','Saturação',0,2,.05],['contrast','Contraste',.5,1.8,.05],['tonR','Tonalidade: vermelho (ganho)',0,2,.01],['tonG','Tonalidade: verde (ganho)',0,2,.01],['tonB','Tonalidade: azul (ganho)',0,2,.01],]],
+ ['palette','Paleta de cores',[['palColors','Máx. de cores (paletas com limite)',2,256,1],['palDither','Dither da paleta',0,1,.05]]],
+ ['ntsc','NTSC / VHS',[['ntChroma','Vazamento de cor (px)',0,24,1],['ntDelay','Atraso do croma (px)',0,12,1],['ntRing','Ringing nas bordas',0,1,.05],['ntSmear','Borrão da luminância (px)',0,6,1],['ntNoise','Ruído de luminância',0,.3,.01],['ntGrain','Tamanho do grão (px)',1,6,1],['ntCNoise','Ruído de cor',0,.3,.01],['ntSnow','Snow (riscos brancos)',0,.05,.001],['ntWave','Onda de borda (px)',0,12,1],['ntPhase','Ruído de fase do croma, uma rotação por linha (rad)',0,.6,.01],['ntHeadH','Cabeça de fita: altura (linhas)',0,24,1],['ntHeadShift','Cabeça de fita: deslocamento (px)',0,40,1],['ntChromaV','Vazamento de cor vertical (linhas)',0,12,1],['ntInterlace','Entrelaçamento: deslocamento entre campos',0,1,.05],['ntBand','Banda da luma (ciclos/px, 0 = borrão simples)',0,.5,.01],['ntLumaV','Borrão vertical da luma (passos)',0,2,1],['ntTrackH','Rastreio: altura da faixa no rodapé (linhas)',0,40,1],['ntTrackSnow','Rastreio: chuvisco',0,1,.02],['ntEdge','Borda esquerda: escurece e estoura (transitório do filtro)',0,1,.05],['ntFieldNoise','Diferença de ruído entre campos par e ímpar',0,.5,.01],['ntBurst','Rajada de ruído (3 linhas, chance por quadro)',0,1,.01],['ntChromaGain','Ganho do croma (cor mais fraca ou mais forte)',.5,1.5,.01]]],
+ ['distort','Distorção',[['dsBarrel','Curvatura (+ barril, − almofada)',-.3,.3,.01],['dsZoom','Zoom',.8,1.5,.01],['dsWaveX','Onda horizontal (px)',0,40,1],['dsWaveY','Onda vertical (px)',0,40,1],['dsWaveFreq','Frequência das ondas',1,40,1],['dsGlitch','Fatias glitch',0,1,.05],['dsGlitchSize','Altura da fatia (px)',2,80,1],['dsRgb','Aberração RGB (px)',0,20,1],['dsJitter','Jitter por linha (px)',0,12,1],['dsPhase','Fase (anima 0→1)',0,1,.01]]],
+ ['halftone','Halftone (pontos)',[['halftone','Força',0,1,.05],['dot','Tamanho do ponto (px)',3,24,1],['angle','Ângulo',0,90,1]]],
+ ['scan','Linhas de TV',[['scan','Força',0,.5,.01],['scanPx','Pixels (0 = automático)',0,16,1]]],
+ ['vig','Vinheta',[['vig','Força',0,.8,.02]]],
+ ['crt','CRT',[['fpOn','Fósforo perfect (só na GPU): entrada em linhas fixas × bloco',0,1,1],['fpLines','Linhas de origem (ex.: 240)',60,720,1],['fpBlock','Bloco: pixels de saída por pixel da imagem (múltiplo de 3)',3,12,1],['crt','Força geral',0,1,.05],['crtBloom','Brilho (bloom)',0,1,.05],['crtCorner','Cantos da tela (arredondados)',0,.2,.01],['crtMask','Máscara de fósforo',0,1,.05],['crtMaskW','Largura horizontal da coluna (px)',1,12,1],['crtMaskX','Separação horizontal entre células (px)',0,4,1],['crtMaskH','Altura da fileira (px, 0 = sem estrutura vertical)',0,12,1],['crtMaskY','Espaçamento vertical entre fileiras (px)',0,12,1],['crtMaskYInt','Intensidade do espaçamento vertical',0,1,.05],['crtMaskR','Cantos de cada célula: raio (px)',0,3,1],['crtLock','Prender ao pixel (cada bloco = 3 colunas)',0,1,1],['crtStagger','Fileiras alternadas deslocadas (máscara de pontos)',0,1,1]]],
+ ['noise','Ruído branco',[['noise','Força',0,.2,.005]]],
+ ['meta','Remover metadados (fixo no fim)',[]]
+];
+const PRE={
+ 'PS1 clássico':{pixel:3,bits:5,dither:'bayer4',ditherAmt:1,gamma:.9,lift:.03,sat:1.05,contrast:1.05,scan:.06,vig:.25},
+ 'PS1 suave':{pixel:3,bits:5,dither:'bayer4',ditherAmt:.8,gamma:.85,lift:.05,sat:1.05,scan:.12,vig:.4,soft:.35,noise:.02,tonR:.938,tonG:.981,tonB:1.044},
+ 'Pixel duro':{pixel:7,down:'nearest',bits:4,dither:'bayer8',ditherAmt:1,sat:1.1,contrast:1.1},
+ 'Dither grosso':{pixel:6,bits:3,dither:'bayer4',ditherAmt:1,contrast:1.1,lift:.02},
+ 'Halftone revista':{pixel:3,bits:5,dither:'none',halftone:.7,dot:7,angle:45,contrast:1.1,sat:.9},
+ 'Analog horror':{pixel:2,bits:5,dither:'bayer4',ditherAmt:.5,gamma:1.15,sat:.7,contrast:1.1,scan:.1,vig:.45,ntOn:1,ntChroma:8,ntDelay:2,ntRing:.3,ntSmear:1,ntNoise:.09,ntGrain:3,ntCNoise:.03,ntSnow:.003,ntWave:2,tonR:.938,tonG:.981,tonB:1.044},
+ 'Game Boy Advance':{pixel:4,down:'nearest',bits:4,dither:'bayer4',ditherAmt:.5,sat:1.25,contrast:1.1,lift:.03},
+ 'NES 8-bit':{pixel:8,down:'nearest',bits:2,dither:'bayer4',ditherAmt:.7,sat:1.5,contrast:1.3,scan:.05},
+ 'SNES 16-bit':{pixel:5,down:'nearest',bits:4,dither:'bayer4',ditherAmt:.6,sat:1.35,contrast:1.15,scan:.08,vig:.15},
+ 'Mega Drive':{pixel:5,down:'nearest',bits:3,dither:'bayer8',ditherAmt:.9,sat:1.3,contrast:1.25,scan:.1,vig:.2},
+ 'Game Boy (tons)':{pixel:5,down:'nearest',bits:2,dither:'bayer4',ditherAmt:.8,sat:0,contrast:1.2,lift:.06,tonR:1.091,tonG:.958,tonB:.776},
+ 'CRT clássico':{pixel:2,bits:6,dither:'bayer4',ditherAmt:.5,sat:1.15,contrast:1.1,scan:.2,scanPx:1,vig:.3,soft:.2,crt:1,crtMask:.5,crtBloom:.45,crtCorner:.05},
+ 'CRT células':{pixel:6,down:'nearest',bits:5,dither:'bayer4',ditherAmt:.6,sat:1.2,contrast:1.15,vig:.25,crt:1,crtMask:.65,crtBloom:.35,crtCorner:.04,crtMaskY:1,crtMaskYInt:.5,crtMaskR:2,crtLock:1,crtStagger:1},
+ 'LCD':{pixel:6,down:'nearest',bits:5,dither:'bayer4',ditherAmt:.6,sat:1.2,contrast:1.15,crt:1,crtMask:.65,crtBloom:.1,crtCorner:0,crtMaskY:1,crtMaskYInt:.5,crtMaskR:0,crtLock:1,crtStagger:0},
+ 'Fósforo perfect 180p':{bits:5,dither:'bayer4',ditherAmt:.6,sat:1.2,contrast:1.15,vig:.25,crt:1,crtMask:.25,crtBloom:.2,crtCorner:.04,crtMaskX:1,crtMaskY:1,crtMaskYInt:.2,crtMaskR:2,crtLock:1,crtStagger:1,fpOn:1,fpLines:180,fpBlock:9},
+ 'Textura low-res (sol)':{pixel:7,down:'box',bits:8,dither:'none',palette:'adaptive',palColors:20,palDither:.2,sat:1.1,contrast:1.1,tonR:1.23,tonG:.95,tonB:.74},
+ 'Arcade':{pixel:4,down:'nearest',bits:3,dither:'bayer4',ditherAmt:.6,sat:1.4,contrast:1.25,scan:.3,vig:.5,soft:.4,noise:.03},
+ 'N64 borrado':{pixel:3,bits:5,dither:'bayer4',ditherAmt:.5,sat:.95,contrast:.95,soft:.9,lift:.04,vig:.2},
+ 'Dreamcast':{pixel:2,bits:6,dither:'bayer4',ditherAmt:.4,sat:1.15,contrast:1.1,soft:.3,vig:.15},
+ 'NTSC / TV a cabo':{pixel:2,bits:5,dither:'bayer4',ditherAmt:.5,sat:1.15,gamma:.95,lift:.05,scan:.15,vig:.35,soft:.3,ntOn:1,ntChroma:5,ntDelay:1,ntRing:.35,ntSmear:1,ntNoise:.06,ntGrain:2,ntCNoise:.03,ntSnow:.002,ntWave:1},
+ 'VHS locadora':{pixel:2,bits:5,dither:'bayer4',ditherAmt:.4,sat:.85,contrast:.95,lift:.08,scan:.12,vig:.35,soft:.5,ntOn:1,ntChroma:10,ntDelay:3,ntRing:.25,ntSmear:2,ntNoise:.1,ntGrain:3,ntCNoise:.06,ntSnow:.006,ntWave:4,tonR:.963,tonG:.989,tonB:1.026},
+ 'VHS suave (sem pixel)':{pixel:1,bits:8,dither:'none',scan:.1,ntOn:1,ntChroma:8,ntDelay:2,ntRing:.3,ntSmear:1,ntNoise:.09,ntGrain:3,ntCNoise:.03,ntSnow:.003,ntWave:2},
+ 'Foto vintage 70s':{pixel:1,bits:6,dither:'bayer8',ditherAmt:.4,sat:.562,contrast:.9,lift:.08,vig:.5,noise:.06,soft:.3,tonR:1.046,tonG:.979,tonB:.888},
+ 'Sépia antiga':{pixel:1,bits:7,dither:'none',sat:0,contrast:.95,lift:.06,vig:.6,noise:.08,tonR:1.13,tonG:.94,tonB:.68},
+ 'Polaroid':{pixel:1,bits:6,dither:'bayer8',ditherAmt:.3,sat:.669,contrast:.9,gamma:.9,lift:.1,vig:.35,noise:.04,tonR:1.032,tonG:.985,tonB:.92},
+ 'Jornal (halftone P&B)':{pixel:2,bits:5,dither:'none',sat:0,contrast:1.3,halftone:.9,dot:6,angle:45,tonR:1.02,tonG:.991,tonB:.952},
+ 'Synthwave 80s':{pixel:4,bits:4,dither:'bayer4',ditherAmt:.7,sat:1.6,contrast:1.2,scan:.15,vig:.4,soft:.3,tonR:.85,tonG:.955,tonB:1.105},
+ 'SNES (pronto p/ exportar)':{pixel:4,bits:5,dither:'bayer4',ditherAmt:.5,sat:1.15,contrast:1.1,palette:'snes',palColors:16,palDither:.4},
+ 'Mega Drive 9 bits':{pixel:4,bits:3,dither:'bayer8',ditherAmt:.6,sat:1.2,contrast:1.15,palette:'md',palColors:64,palDither:.4,scan:.08},
+ 'Game Boy 4 tons':{pixel:5,down:'nearest',bits:8,dither:'none',contrast:1.25,palette:'gb',palDither:.6},
+ 'NES (paleta fixa)':{pixel:5,down:'nearest',bits:8,dither:'none',palette:'nes',palDither:.5,contrast:1.1,sat:1.1},
+ 'PICO-8':{pixel:4,down:'nearest',bits:8,dither:'none',palette:'pico8',palDither:.5,contrast:1.1},
+ 'VHS ntsc-rs (suave)':{pixel:1,bits:8,dither:'none',ntOn:1,ntRs:1,ntVary:1,ntChroma:12,ntDelay:11,ntSmear:2,ntRing:0,ntBand:.12,ntLumaV:1,ntChromaV:4,ntNoise:.045,ntGrain:3,ntCNoise:.005,ntPhase:.29,ntChromaGain:.96,ntSnow:.004,ntWave:2,ntHeadH:8,ntHeadShift:6,ntTrackH:14,ntTrackSnow:.18,ntEdge:1,ntFieldNoise:.175,ntBurst:.03},
+ 'Analog horror ntsc-rs':{pixel:1,bits:8,dither:'none',ntOn:1,ntRs:1,ntVary:1,ntChroma:12,ntDelay:11,ntSmear:2,ntRing:0,ntBand:.12,ntLumaV:1,ntChromaV:4,ntNoise:.045,ntGrain:3,ntCNoise:.005,ntPhase:.29,ntChromaGain:.96,ntSnow:.004,ntWave:2,ntHeadH:8,ntHeadShift:6,ntTrackH:14,ntTrackSnow:.18,ntEdge:1,ntFieldNoise:.175,ntBurst:.03,scan:.2,off:['palette','distort','halftone','vig','noise','pixel']},
+ 'Sutil':{pixel:2,bits:6,dither:'bayer4',ditherAmt:.6,lift:.02,scan:.04,vig:.15}
+};
+const KEYS=['color','pixel','palette','ntsc','distort','halftone','scan','vig','noise','crt','meta'];
+const ZERO=['halftone','scan','vig','noise','crt'];
+// Perfis antigos (predefinições, JSON importado, salvos no navegador): tint, sepia e poster saíram da interface; viram ganhos RGB e saturação, aproximados
+function legacyColor(o){
+  if(!o||typeof o!=='object'||(!o.tint&&!o.sepia&&o.poster===undefined))return o;
+  const p={...o};let sat=p.sat===undefined?1:+p.sat,r=p.tonR===undefined?1:+p.tonR,g=p.tonG===undefined?1:+p.tonG,b=p.tonB===undefined?1:+p.tonB;
+  if(p.tint>0){const t=+p.tint;r*=1-.25*t;g*=1-.075*t;b*=1+.175*t}
+  if(p.sepia>0){const s=+p.sepia;sat*=1-.85*s;r*=1+.13*s;g*=1-.06*s;b*=1-.32*s}
+  if(p.tint>0||p.sepia>0){p.sat=+sat.toFixed(3);p.tonR=+r.toFixed(3);p.tonG=+g.toFixed(3);p.tonB=+b.toFixed(3)}
+  delete p.tint;delete p.sepia;delete p.poster;return p}
+function fresh(o){
+  o=legacyColor(o);
+  const p={...DEF,...(o||{})};
+  const ord=(p.order||[]).filter(k=>KEYS.includes(k));KEYS.forEach(k=>{if(!ord.includes(k))ord.push(k)});p.order=ord.filter(k=>k!=='meta').concat('meta');
+  if(o&&Array.isArray(o.off))p.off=o.off.filter(k=>KEYS.includes(k));
+  else{p.off=[];if(!(o&&o.palette))p.off.push('palette');if(!(o&&o.ntOn))p.off.push('ntsc');if(!(o&&o.dsOn))p.off.push('distort')}
+  for(const k of ZERO)if(!(p[k]>0)&&!p.off.includes(k))p.off.push(k);
+  if(!PALS[p.palette]){p.palette='snes';if(!p.off.includes('palette'))p.off.push('palette')}
+  return p}
+function sanitize(o){
+  if(!o||typeof o!=='object')return null;
+  o=legacyColor(o);
+  const r={};
+  for(const k in DEF){if(!(k in o))continue;const v=o[k],d=DEF[k];
+    if(typeof d==='number'){const n=+v;if(Number.isFinite(n))r[k]=n}
+    else if(typeof d==='string'){if(typeof v==='string')r[k]=v}
+    else if(Array.isArray(d)){if(Array.isArray(v))r[k]=v.filter(x=>typeof x==='string')}}
+  if(r.dither&&!['bayer4','bayer8','none'].includes(r.dither))delete r.dither;
+  if(r.down&&!['box','nearest'].includes(r.down))delete r.down;
+  if(r.alpha&&!['hard','soft'].includes(r.alpha))delete r.alpha;
+  for(const [,,items] of SL)for(const [k,,mn,mx] of items)if(k in r)r[k]=Math.min(mx,Math.max(mn,r[k]));
+  return fresh(r)}
+function clone(p){return {...p,order:[...p.order],off:[...p.off]}}
+const BAYER4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5].map(v=>(v+.5)/16);
+const B8=[0,32,8,40,2,34,10,42,48,16,56,24,50,18,58,26,12,44,4,36,14,46,6,38,60,28,52,20,62,30,54,22,3,35,11,43,1,33,9,41,51,19,59,27,49,17,57,25,15,47,7,39,13,45,5,37,63,31,55,23,61,29,53,21];
+const BAYER8=B8.map(v=>(v+.5)/64);
+let P=fresh(),src=null,showOrig=false;
+const $=id=>document.getElementById(id),stage=$('stage'),ctx=stage.getContext('2d');
+
+// UI
+const ctrls=$('ctrls');
+function mkSelect(label,key,opts){
+  const d=document.createElement('div');d.className='row';
+  d.innerHTML=`<label>${label}</label><span></span>`;
+  const s=document.createElement('select');s.style.gridColumn='1/3';
+  opts.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;s.appendChild(o)});
+  s.onchange=()=>{P[key]=s.value;render()};s.id='s_'+key;d.appendChild(s);return d}
+const WTAGS={ImageDescription:0x010E,Make:0x010F,Model:0x0110,Software:0x0131,DateTime:0x0132,Artist:0x013B,Copyright:0x8298};
+SL.forEach(([stg,title,items])=>{
+  const g=document.createElement('div');g.className='grp';g.dataset.stage=stg;
+  const h=document.createElement('h2');h.textContent=title;g.appendChild(h);
+  const ar=document.createElement('label');ar.className='act-row';ar.innerHTML=`<input type="checkbox" id="a_${stg}"> Etapa ativa`;g.appendChild(ar);
+  ar.querySelector('input').onchange=e=>{setOff(stg,!e.target.checked)};
+  if(stg!=='meta'){const at=document.createElement('div');at.className='atr';at.hidden=true;
+    at.innerHTML='<h3>Transição desta etapa (Antes → Depois)</h3><label>Modo <select class="at_mode"><option value="follow">Seguir a transição geral</option><option value="random">Aleatória por parâmetro</option></select></label><div class="at_r"><label>Suavização <input type="range" class="at_sm" min="0" max="1" step="0.05"></label><label>Semente <input type="number" class="at_seed" min="0" max="9999" step="1"><button type="button" class="at_dice">Sortear</button></label><p class="at_n">Cada parâmetro sorteia o seu valor entre o Antes e o Depois. O cadeado trava um parâmetro no valor do Antes.</p></div>';
+    g.appendChild(at)}
+  if(stg==='pixel'){g.appendChild(mkSelect('Redução da imagem','down',[['box','Média (suave)'],['nearest','Pontos (duro)']]));
+    g.appendChild(mkSelect('Transparência (PNG)','alpha',[['hard','Borda dura (estilo sprite)'],['soft','Borda suave']]));
+    g.appendChild(mkSelect('Dither','dither',[['bayer4','Bayer 4x4 (PS1)'],['bayer8','Bayer 8x8'],['none','Nenhum']]))}
+  if(stg==='palette')g.appendChild(mkSelect('Paleta','palette',PALOPTS));
+  items.forEach(([k,l,mn,mx,st])=>{
+    const d=document.createElement('div');d.className='row';
+    d.dataset.k=k;d.innerHTML=`<label for="r_${k}">${l}<span class="rdice" hidden title="Sorteia entre Antes e Depois; clique para travar no Antes">🎲</span></label><input type="text" inputmode="decimal" class="num" id="o_${k}" autocomplete="off"><input type="range" id="r_${k}" min="${mn}" max="${mx}" step="${st}">`;
+    g.appendChild(d);
+    const rg=d.querySelector('input[type=range]'),nb=d.querySelector('.num');
+    rg.oninput=e=>{P[k]=+e.target.value;nb.value=P[k];render(true);updateDeps()};
+    const commit=()=>{const t=nb.value.trim().replace(',','.');
+      if(/^-?\d+(\.\d+)?$/.test(t)){const v=+t;if(v>=mn&&v<=mx){P[k]=v;rg.value=v;nb.value=P[k];render();updateDeps();return}}
+      nb.value=P[k]};
+    nb.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit();nb.blur()}else if(e.key==='Escape'){nb.value=P[k];nb.blur()}};
+    nb.onblur=()=>{nb.value=P[k]};
+  });
+  if(stg==='meta'){const n=document.createElement('p');n.id='metaNote';n.className='mnote';g.appendChild(n);
+    const ul=document.createElement('ul');ul.id='metaList';g.appendChild(ul);
+    const ad=document.createElement('div');ad.id='metaAdd';ad.className='madd';ad.innerHTML='<select>'+Object.keys(WTAGS).map(k=>'<option>'+k+'</option>').join('')+'</select><button type="button">Adicionar campo</button>';
+    ad.querySelector('button').onclick=()=>{if(cur<0)return;const e=metaEntry(ad.querySelector('select').value,'',true);e.keep=true;(FILES[cur].meta=FILES[cur].meta||[]).push(e);renderMeta()};g.appendChild(ad)}
+  if(stg==='ntsc'){const fl=document.createElement('label');fl.className='act-row';fl.title='Com a flag ligada, o padrão do ruído e da onda muda a cada quadro da animação. Desligada, é sempre o mesmo (semente 42).';
+    fl.innerHTML='<input type="checkbox" id="s_ntVary"> Ruído muda a cada quadro (animação)';g.appendChild(fl);
+    fl.querySelector('input').onchange=e=>{P.ntVary=e.target.checked?1:0;render()};
+    const f2=document.createElement('label');f2.className='act-row';f2.title='Ruído correlacionado entre linhas, ruído de fase, neve e cabeça de fita calculados por hash: o mesmo no navegador e no shader, como no ntsc-rs.';
+    f2.innerHTML='<input type="checkbox" id="s_ntRs"> Modo ntsc-rs (ruído vertical, fase, cabeça de fita)';g.appendChild(f2);
+    f2.querySelector('input').onchange=e=>{P.ntRs=e.target.checked?1:0;render()}}
+  if(stg==='palette'){const sw=document.createElement('div');sw.id='swatches';g.appendChild(sw)}
+  ctrls.appendChild(g);
+});
+// Subtítulos do painel CRT e controles que não valem em certos modos (ficam apagados, com a explicação no título)
+(()=>{const hd=(k,t)=>{const r=ctrls.querySelector('.row[data-k="'+k+'"]');if(r){const h=document.createElement('h3');h.textContent=t;h.className='sub';r.before(h)}};
+  hd('fpOn','Fósforo perfect: resolução de entrada e saída');hd('crt','Tela');hd('crtMask','Máscara de fósforo')})();
+function updateDeps(){
+  const fp=P.fpOn>.5,lock=P.crtLock>.5||fp;
+  const set=(k,off,why)=>{const r=ctrls.querySelector('.row[data-k="'+k+'"]');if(!r)return;r.classList.toggle('off',off);r.title=off?why:'';r.querySelectorAll('input').forEach(i=>{i.disabled=off})};
+  set('crtMaskW',lock,'Ignorado com "Prender ao pixel" ou com o Fósforo perfect ligados: a máscara usa o bloco do pixel');
+  set('crtMaskH',lock,'Ignorado com "Prender ao pixel" ou com o Fósforo perfect ligados: a máscara usa o bloco do pixel');
+  set('fpLines',!fp,'Só vale com o Fósforo perfect ligado');set('fpBlock',!fp,'Só vale com o Fósforo perfect ligado')}
+function showPanel(){if(sel==='meta'&&!document.activeElement.closest('#metaList'))renderMeta();document.querySelectorAll('.grp').forEach(g=>{const k=g.dataset.stage;g.hidden=k!==sel;$('a_'+k).checked=!P.off.includes(k)});if(typeof animUi==='function')animUi()}
+function setOff(k,off){P.off=P.off.filter(x=>x!==k);if(off)P.off.push(k);renderPipe();render()}
+function sync(){
+  for(const [,,items] of SL)for(const [k] of items){$('r_'+k).value=P[k];$('o_'+k).value=P[k]}
+  updateDeps();$('s_ntVary').checked=!!P.ntVary;$('s_ntRs').checked=!!P.ntRs;$('s_down').value=P.down;$('s_dither').value=P.dither;$('s_alpha').value=P.alpha;$('s_palette').value=P.palette;showSwatches();renderPipe();
+}
+// Efeitos: somam à predefinição atual (só mexem na etapa Distorção) e podem ser tirados
+const FX={'Tela curva':{dsBarrel:.012,dsZoom:1.04,dsRgb:1},'Glitch':{dsGlitch:.35,dsGlitchSize:14,dsRgb:4,dsWaveX:2,dsWaveFreq:12},
+ 'Tela antiga':{dsBarrel:.018,dsZoom:1.06,dsRgb:2},
+ 'Tela abaulada':{dsBarrel:.03,dsZoom:1.09},
+ 'Almofada':{dsBarrel:-.02,dsZoom:1},
+ 'Aberração RGB':{dsRgb:3},
+ 'Tremor de fita':{dsWaveX:3,dsWaveFreq:25,dsGlitch:.15,dsGlitchSize:6,dsRgb:1},
+ 'Interferência':{dsGlitch:.6,dsGlitchSize:4,dsRgb:2},
+ 'Onda lenta':{dsWaveX:8,dsWaveFreq:3},
+ 'Ondulação':{dsWaveX:6,dsWaveY:6,dsWaveFreq:7},
+ 'Jitter':{dsJitter:2}};
+let curFx='';
+function applyFx(name){
+  for(const k in DEF)if(/^ds/.test(k)&&k!=='dsOn')P[k]=DEF[k];
+  P.off=P.off.filter(x=>x!=='distort');
+  if(name)Object.assign(P,FX[name]);else P.off.push('distort')}
+const fxs=$('fx');
+fxs.innerHTML='<option value="">Efeito: nenhum</option>'+Object.keys(FX).map(k=>`<option value="${k}">Efeito: ${k}</option>`).join('');
+fxs.onchange=()=>{cmb.value='';curFx=fxs.value;applyFx(curFx);sync();render()};
+// Combinações: atalhos que escolhem uma predefinição e um efeito de uma vez
+const COMBO={
+ 'PS1 com tela curva':{base:'PS1 suave',fx:'Tela antiga'},
+ 'Arcade abaulado':{base:'Arcade',fx:'Tela abaulada'},
+ 'TV a cabo curva':{base:'NTSC / TV a cabo',fx:'Tela antiga'},
+ 'VHS com tremor':{base:'VHS locadora',fx:'Tremor de fita'},
+ 'Analog horror com interferência':{base:'Analog horror',fx:'Interferência'},
+ 'Dreamcast com aberração':{base:'Dreamcast',fx:'Aberração RGB'},
+ 'SNES com glitch':{base:'SNES 16-bit',fx:'Glitch'}};
+const cmb=$('combo');
+cmb.innerHTML='<option value="">— combinações —</option>'+Object.keys(COMBO).map(k=>`<option value="${k}">${k}</option>`).join('');
+const pr=$('presets');
+cmb.onchange=()=>{const c=COMBO[cmb.value];if(!c)return;closeDel();pio('');
+  P=fresh(PRE[c.base]);curFx=c.fx;applyFx(c.fx);pr.value='p:'+c.base;fxs.value=c.fx;sync();render()};
+let USER={};
+try{USER=JSON.parse(localStorage.getItem('retroit.user')||'{}')}catch(e){}
+function saveUser(){try{localStorage.setItem('retroit.user',JSON.stringify(USER));return true}catch(e){return false}}
+const NOSAVE='Não foi possível gravar no navegador.';
+function pio(t){$('pio').textContent=t}
+function download(blob,name){const a=document.createElement('a');a.download=name;a.href=URL.createObjectURL(blob);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+function fillPresets(sel){
+  pr.innerHTML='';
+  const add=(label,names,pre)=>{if(!names.length)return;const g=document.createElement('optgroup');g.label=label;
+    names.forEach(n=>{const o=document.createElement('option');o.value=pre+n;o.textContent=n;g.appendChild(o)});pr.appendChild(g)};
+  const o0=document.createElement('option');o0.value='';o0.textContent='— escolher predefinição —';pr.appendChild(o0);
+  add('Predefinições',Object.keys(PRE),'p:');add('Personalizadas',Object.keys(USER),'u:');
+  pr.value=sel||'';
+}
+pr.onchange=()=>{cmb.value='';closeDel();pio('');const v=pr.value;if(!v)return;const src=v[0]==='u'?USER:PRE;P=fresh(src[v.slice(2)]);if(curFx)applyFx(curFx);sync();render()};
+const sf=$('saveform'),pn=$('pname'),pm=$('pmsg'),pok=$('pok');
+let confirmOver=false,renameFrom=null;
+function closeForm(){sf.hidden=true;pn.value='';pm.textContent='';confirmOver=false;renameFrom=null;pn.placeholder='Nome da predefinição';pok.textContent='Salvar'}
+$('savep').onclick=()=>{closeDel();sf.hidden=false;confirmOver=false;renameFrom=null;pn.placeholder='Nome da predefinição';pok.textContent='Salvar';pm.textContent='';pn.focus()};
+// Renomear: só predefinições personalizadas (perfis do usuário); reaproveita o formulário de salvar, já com o nome atual
+$('renp').onclick=()=>{const v=pr.value;closeForm();closeDel();
+  if(!v||v[0]!=='u'){pio('Selecione uma predefinição personalizada para renomear.');return}
+  pio('');renameFrom=v.slice(2);sf.hidden=false;confirmOver=false;pn.placeholder='Novo nome';pn.value=renameFrom;pok.textContent='Renomear';pm.textContent='';pn.focus();pn.select()};
+$('pcancel').onclick=closeForm;
+pn.oninput=()=>{confirmOver=false;pok.textContent=renameFrom?'Renomear':'Salvar';pm.textContent=''};
+sf.onsubmit=e=>{
+  e.preventDefault();
+  const n=pn.value.trim();
+  if(!n){pm.textContent='Digite um nome para a predefinição.';pn.focus();return}
+  if(renameFrom){
+    if(n===renameFrom){closeForm();return}                      // mesmo nome: nada a fazer
+    if(!USER[renameFrom]){pm.textContent='A predefinição original não existe mais.';return}
+    if(USER[n]&&!confirmOver){confirmOver=true;pm.textContent='Já existe "'+n+'". Substituir?';pok.textContent='Substituir';return}
+    USER[n]=USER[renameFrom];delete USER[renameFrom];if(!saveUser()){pm.textContent=NOSAVE;return}fillPresets('u:'+n);closeForm();pio('Renomeada para "'+n+'".');return}
+  if(USER[n]&&!confirmOver){confirmOver=true;pm.textContent='Já existe "'+n+'". Substituir?';pok.textContent='Substituir';return}
+  USER[n]=clone(P);if(!saveUser()){pm.textContent=NOSAVE;return}fillPresets('u:'+n);closeForm()};
+const db=$('delbox'),dm=$('dmsg'),dok=$('dok');
+function closeDel(){db.hidden=true}
+$('delp').onclick=()=>{const v=pr.value;closeForm();db.hidden=false;
+  if(!v||v[0]!=='u'){dm.textContent='Selecione uma predefinição personalizada para excluir.';dok.hidden=true;return}
+  dm.textContent='Excluir "'+v.slice(2)+'"? Não dá para desfazer.';dok.hidden=false};
+$('dcancel').onclick=closeDel;
+dok.onclick=()=>{const v=pr.value;if(!v||v[0]!=='u'){closeDel();return}delete USER[v.slice(2)];if(!saveUser()){dm.textContent=NOSAVE;return}fillPresets();closeDel()};
+// Exportar JSON: com uma predefinição personalizada selecionada, baixa SÓ ela, com o nome dela (<nome>.json); sem nenhuma selecionada, baixa todas as personalizadas
+$('pexport').onclick=()=>{const names=Object.keys(USER);if(!names.length){pio('Nenhuma predefinição personalizada para exportar.');return}
+  const v=pr.value,sel=v&&v[0]==='u'&&USER[v.slice(2)]?v.slice(2):null;
+  const presets=sel?{[sel]:USER[sel]}:USER,file=sel?safeName(sel)+'.json':'retroit-predefinicoes.json';
+  download(new Blob([JSON.stringify({app:'retroit',version:1,presets},null,1)],{type:'application/json'}),file);
+  pio(sel?'Exportada "'+sel+'" como '+file+'.':'Exportadas '+names.length+' em '+file+'.')};
+$('pimport').onclick=()=>$('pfile').click();
+$('pfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let data;
+  try{data=JSON.parse(await f.text())}catch(err){pio('Arquivo inválido: não é JSON.');return}
+  const srcp=data&&data.presets&&typeof data.presets==='object'?data.presets:(data&&typeof data==='object'?data:null);
+  if(!srcp){pio('Arquivo inválido.');return}
+  let n=0,ren=0;
+  for(const [name,v] of Object.entries(srcp)){const p=sanitize(v);if(!p)continue;let nm=String(name).trim().slice(0,40);if(!nm)continue;
+    if(USER[nm]){let i=2;while(USER[nm+' ('+i+')'])i++;nm=nm+' ('+i+')';ren++}USER[nm]=p;n++}
+  if(!n){pio('Nenhuma predefinição válida no arquivo.');return}
+  if(!saveUser()){pio(NOSAVE);return}fillPresets();pio('Importadas '+n+(ren?' ('+ren+' renomeadas por nome repetido)':'')+'.')};
+fillPresets('p:PS1 clássico');
+
+// Fonte
+function demo(){
+  const c=document.createElement('canvas');c.width=960;c.height=540;const g=c.getContext('2d');
+  const sky=g.createLinearGradient(0,0,0,540);sky.addColorStop(0,'#10163a');sky.addColorStop(.6,'#c4577a');sky.addColorStop(1,'#f5b36a');
+  g.fillStyle=sky;g.fillRect(0,0,960,540);
+  g.fillStyle='#fff3c8';g.beginPath();g.arc(700,190,70,0,7);g.fill();
+  g.fillStyle='#2a1b3d';g.beginPath();g.moveTo(0,420);for(let x=0;x<=960;x+=40)g.lineTo(x,380-Math.sin(x*.02)*50-((x*7)%30));g.lineTo(960,540);g.lineTo(0,540);g.fill();
+  g.fillStyle='#120c1f';g.fillRect(0,470,960,70);
+  g.fillStyle='#e8e9ef';g.font='bold 64px sans-serif';g.fillText('RETROit',80,150);
+  src=c;render()}
+let FILES=[],cur=-1;
+// Metadados: leitura (EXIF/PNG/WebP), edição e regravação de campos de texto
+const TAGS={0x010E:'ImageDescription',0x010F:'Make',0x0110:'Model',0x0112:'Orientation',0x011A:'XResolution',0x011B:'YResolution',0x0128:'ResolutionUnit',0x0131:'Software',0x0132:'DateTime',0x013B:'Artist',0x8298:'Copyright',0x8827:'ISO',0x829A:'ExposureTime',0x829D:'FNumber',0x9003:'DateTimeOriginal',0x9004:'DateTimeDigitized',0x920A:'FocalLength',0x9286:'UserComment',0xA002:'PixelXDimension',0xA003:'PixelYDimension',0xA430:'CameraOwnerName',0xA431:'BodySerialNumber',0xA434:'LensModel'};
+const GTAGS={1:'GPSLatitudeRef',2:'GPSLatitude',3:'GPSLongitudeRef',4:'GPSLongitude',5:'GPSAltitudeRef',6:'GPSAltitude',7:'GPSTimeStamp',0x1D:'GPSDateStamp'};
+const metaEntry=(k,v,edit)=>({k,v,edit:!!edit,keep:false});
+function tiffEntries(u,o,out){
+  if(o+8>u.length)return;const le=u[o]===0x49,dv=new DataView(u.buffer,u.byteOffset,u.length);
+  const g16=p=>dv.getUint16(p,le),g32=p=>dv.getUint32(p,le),SZ={1:1,2:1,3:2,4:4,5:8,7:1,9:4,10:8};
+  const ifd=(p,gps,depth)=>{if(depth>2||o+p+2>u.length)return;const n=g16(o+p);
+    for(let i=0;i<n;i++){const e=o+p+2+i*12;if(e+12>u.length)break;const tag=g16(e),ty=g16(e+2),cnt=g32(e+4),sz=(SZ[ty]||1)*cnt,vp=sz<=4?e+8:o+g32(e+8);
+      if(tag===0x8769&&!gps){ifd(g32(e+8),false,depth+1);continue}
+      if(tag===0x8825&&!gps){ifd(g32(e+8),true,depth+1);continue}
+      const nm=gps?(GTAGS[tag]||'GPS 0x'+tag.toString(16)):(TAGS[tag]||'0x'+tag.toString(16));let v='';
+      if(vp+sz>u.length||cnt>4096)v='(dados)';
+      else if(ty===2)v=new TextDecoder().decode(u.subarray(vp,vp+cnt)).replace(/\0+$/,'');
+      else if(ty===3||ty===4||ty===1||ty===7){const a=[];for(let j=0;j<Math.min(cnt,8);j++)a.push(ty===3?g16(vp+j*2):ty===4?g32(vp+j*4):u[vp+j]);v=a.join(', ')+(cnt>8?' …':'')}
+      else if(ty===5||ty===10){const a=[];for(let j=0;j<Math.min(cnt,4);j++)a.push(g32(vp+j*8)+'/'+g32(vp+j*8+4));v=a.join(', ')}
+      else v='(dados)';
+      out.push(metaEntry(nm,v,!gps&&WTAGS[nm]===tag&&ty===2))}};
+  try{ifd(g32(o+4),false,0)}catch(e){}}
+async function readMeta(f){
+  const out=[];try{
+    const u=new Uint8Array(await f.arrayBuffer()),L1=new TextDecoder('latin1'),U8=new TextDecoder();
+    if(u[0]===0x89&&u[1]===0x50){let i=8;
+      while(i+12<=u.length){const n=((u[i]<<24)|(u[i+1]<<16)|(u[i+2]<<8)|u[i+3])>>>0,t=String.fromCharCode(u[i+4],u[i+5],u[i+6],u[i+7]),d=u.subarray(i+8,i+8+n);
+        if(t==='tEXt'){const z=d.indexOf(0);out.push(metaEntry(L1.decode(d.subarray(0,z)),L1.decode(d.subarray(z+1)),true))}
+        else if(t==='iTXt'){const z=d.indexOf(0);let p=z+3;while(p<d.length&&d[p]!==0)p++;p++;while(p<d.length&&d[p]!==0)p++;p++;
+          out.push(metaEntry(U8.decode(d.subarray(0,z)),d[z+1]?'(compactado)':U8.decode(d.subarray(p)),!d[z+1]))}
+        else if(t==='zTXt')out.push(metaEntry(L1.decode(d.subarray(0,d.indexOf(0))),'(compactado)'));
+        else if(t==='eXIf')tiffEntries(d,0,out);
+        else if(t==='iCCP')out.push(metaEntry('Perfil ICC',n+' bytes'));
+        else if(t==='tIME')out.push(metaEntry('Data de modificação',((d[0]<<8)|d[1])+'-'+d[2]+'-'+d[3]+' '+d[4]+':'+d[5]));
+        if(t==='IEND')break;i+=12+n}}
+    else if(u[0]===0xFF&&u[1]===0xD8){let i=2;
+      while(i+4<=u.length&&u[i]===0xFF){const m=u[i+1];if(m===0xDA)break;const n=(u[i+2]<<8)|u[i+3],d=u.subarray(i+4,i+2+n),h=L1.decode(d.subarray(0,29));
+        if(m===0xE1&&h.startsWith('Exif\0\0'))tiffEntries(u,i+10,out);
+        else if(m===0xE1&&h.startsWith('http://ns.adobe.com/xap'))out.push(metaEntry('XMP',n+' bytes'));
+        else if(m===0xE2&&h.startsWith('ICC_PROFILE'))out.push(metaEntry('Perfil ICC',n+' bytes'));
+        else if(m===0xED)out.push(metaEntry('Photoshop / IPTC',n+' bytes'));
+        else if(m===0xFE)out.push(metaEntry('Comentário',U8.decode(d)));
+        i+=2+n}}
+    else if(String.fromCharCode(u[0],u[1],u[2],u[3])==='RIFF'){let i=12;
+      while(i+8<=u.length){const t=String.fromCharCode(u[i],u[i+1],u[i+2],u[i+3]),n=u[i+4]|(u[i+5]<<8)|(u[i+6]<<16)|(u[i+7]<<24);
+        if(t==='EXIF'){const d=u.subarray(i+8,i+8+n);tiffEntries(d,d[0]===0x45?6:0,out)}
+        else if(t==='XMP ')out.push(metaEntry('XMP',n+' bytes'));
+        else if(t==='ICCP')out.push(metaEntry('Perfil ICC',n+' bytes'));
+        i+=8+n+(n&1)}}
+  }catch(e){}
+  return out}
+const curMeta=()=>cur>=0&&FILES[cur]?FILES[cur].meta||[]:[];
+function renderMeta(){
+  const ul=$('metaList');if(!ul)return;ul.innerHTML='';const m=curMeta();
+  $('metaNote').textContent=cur<0?'Carregue uma foto para ver os metadados dela.':m.length?'Tudo é removido na exportação. Marque "manter" (ou edite o valor) nos campos de texto que quiser regravar.':'Esta imagem não tem metadados.';
+  m.forEach(e=>{const li=document.createElement('li');
+    li.innerHTML='<b></b>'+(e.edit?'<input type="text"><label><input type="checkbox"> manter</label>':'<span></span><em>removido</em>');
+    li.querySelector('b').textContent=e.k;
+    if(e.edit){const t=li.querySelector('input[type=text]'),c=li.querySelector('input[type=checkbox]');t.value=e.v;c.checked=e.keep;
+      t.oninput=()=>{e.v=t.value;e.keep=true;c.checked=true};c.onchange=()=>{e.keep=c.checked}}
+    else li.querySelector('span').textContent=e.v;
+    ul.appendChild(li)});
+  $('metaAdd').hidden=cur<0}
+// regravação
+const asc=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\x20-\x7E]/g,'?');
+function pngWithText(u,ents){
+  const enc=new TextEncoder(),parts=[u.subarray(0,33)];
+  for(const e of ents){const k=enc.encode(e.k.slice(0,79)),v=enc.encode(e.v),d=new Uint8Array(k.length+5+v.length);d.set(k,0);d.set(v,k.length+5);
+    const c=new Uint8Array(12+d.length),dv=new DataView(c.buffer);dv.setUint32(0,d.length);c.set([0x69,0x54,0x58,0x74],4);c.set(d,8);dv.setUint32(8+d.length,crc32(c.subarray(4,8+d.length)));parts.push(c)}
+  parts.push(u.subarray(33));return new Blob(parts,{type:'image/png'})}
+function jpegWithExif(u,ents){
+  const L=ents.filter(e=>WTAGS[e.k]).map(e=>({t:WTAGS[e.k],b:new TextEncoder().encode(asc(e.v)+'\0')})).sort((a,b)=>a.t-b.t);
+  if(!L.length)return new Blob([u],{type:'image/jpeg'});
+  let dl=0;L.forEach(x=>{if(x.b.length>4)dl+=x.b.length+(x.b.length&1)});
+  const base=8+2+L.length*12+4,t=new Uint8Array(base+dl),dv=new DataView(t.buffer);t.set([0x49,0x49,0x2A,0,8,0,0,0]);dv.setUint16(8,L.length,true);
+  let dp=base;L.forEach((x,i)=>{const p=10+i*12;dv.setUint16(p,x.t,true);dv.setUint16(p+2,2,true);dv.setUint32(p+4,x.b.length,true);
+    if(x.b.length<=4)t.set(x.b,p+8);else{dv.setUint32(p+8,dp,true);t.set(x.b,dp);dp+=x.b.length+(x.b.length&1)}});
+  const hd=new Uint8Array(10),h=new DataView(hd.buffer);hd.set([0xFF,0xE1,0,0,0x45,0x78,0x69,0x66,0,0]);h.setUint16(2,2+6+t.length);
+  return new Blob([u.subarray(0,2),hd,t,u.subarray(2)],{type:'image/jpeg'})}
+function loadImg(f){return new Promise((ok,err)=>{const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{URL.revokeObjectURL(u);ok(im)};im.onerror=()=>{URL.revokeObjectURL(u);err(new Error('load'))};im.src=u})}
+async function addFiles(list){
+  const imgs=[...list].filter(f=>f&&f.type&&f.type.startsWith('image/'));if(!imgs.length)return;
+  for(const f of imgs){try{const im=await loadImg(f);FILES.push({name:f.name||('colada-'+(FILES.length+1)+'.png'),img:im,meta:await readMeta(f)})}catch(e){}}
+  if(!FILES.length)return;
+  cur=FILES.length-1;src=FILES[cur].img;renderBatch();render()}
+function pick(i){cur=i;src=FILES[i].img;renderBatch();render()}
+function removeFile(i){FILES.splice(i,1);if(!FILES.length){cur=-1;renderBatch();demo();return}pick(Math.min(i,FILES.length-1))}
+function renderBatch(){
+  const bx=$('batch');bx.innerHTML='';bx.hidden=FILES.length<2;$('e_all').hidden=FILES.length<2;
+  if(bx.hidden)return;
+  const t=document.createElement('span');t.textContent=FILES.length+' fotos:';bx.appendChild(t);
+  FILES.forEach((f,i)=>{const b=document.createElement('button');b.className='chip'+(i===cur?' act':'');b.innerHTML='<span></span><i title="Remover do lote">×</i>';
+    b.querySelector('span').textContent=f.name;b.onclick=()=>pick(i);b.querySelector('i').onclick=e=>{e.stopPropagation();removeFile(i)};bx.appendChild(b)});
+  const c=document.createElement('button');c.className='chip';c.textContent='Limpar lote';c.onclick=()=>{FILES=[];cur=-1;renderBatch();demo()};bx.appendChild(c)}
+$('open').onclick=()=>$('file').click();$('file').onchange=e=>{addFiles(e.target.files);e.target.value=''};
+addEventListener('dragover',e=>e.preventDefault());
+addEventListener('drop',e=>{e.preventDefault();addFiles(e.dataTransfer.files)});
+addEventListener('paste',e=>{const it=[...e.clipboardData.items].find(i=>i.type.startsWith('image/'));it&&addFiles([it.getAsFile()])});
+
+// Exportar
+const E={fmt:$('e_fmt'),q:$('e_q'),bg:$('e_bg'),sc:$('e_scale'),info:$('e_info'),msg:$('e_msg')};
+const MIME={png:'image/png',webp:'image/webp',jpg:'image/jpeg'};
+function nativeOf(c){
+  if(P.off.includes('pixel'))return c;
+  const px=P.pixel,w=Math.max(1,Math.ceil(c.width/px)),h=Math.max(1,Math.ceil(c.height/px));
+  const sd=c.getContext('2d',{willReadFrequently:true}).getImageData(0,0,c.width,c.height).data,o=new ImageData(w,h),d=o.data;
+  for(let y=0;y<h;y++){const sy=Math.min(c.height-1,y*px+(px>>1));for(let x=0;x<w;x++){const sx=Math.min(c.width-1,x*px+(px>>1)),i=(sy*c.width+sx)*4,j=(y*w+x)*4;d[j]=sd[i];d[j+1]=sd[i+1];d[j+2]=sd[i+2];d[j+3]=sd[i+3]}}
+  const n=document.createElement('canvas');n.width=w;n.height=h;n.getContext('2d').putImageData(o,0,0);return n}
+function expSize(w,h){if(E.sc.value==='real'){const px=P.off.includes('pixel')?1:P.pixel;return [Math.max(1,Math.ceil(w/px)),Math.max(1,Math.ceil(h/px))]}const f=+E.sc.value;return [Math.max(1,Math.round(w*f)),Math.max(1,Math.round(h*f))]}
+function expCanvasFrom(c){
+  const real=E.sc.value==='real',base=real?nativeOf(c):c,[w,h]=real?[base.width,base.height]:expSize(c.width,c.height);
+  const o=document.createElement('canvas');o.width=w;o.height=h;const x=o.getContext('2d',{willReadFrequently:true});
+  if(E.fmt.value==='jpg'){x.fillStyle=E.bg.value;x.fillRect(0,0,w,h)}
+  x.imageSmoothingEnabled=false;x.drawImage(base,0,0,w,h);return o}
+function expCanvas(){return expCanvasFrom(stage)}
+function expUpdate(){
+  const j=E.fmt.value==='jpg',lossy=E.fmt.value!=='png',[w,h]=expSize(stage.width,stage.height);
+  $('e_qrow').hidden=!lossy;$('e_brow').hidden=!j;$('e_qo').textContent=E.q.value;
+  E.info.textContent='Resultado: '+w+' × '+h+' px';E.msg.textContent=''}
+['change','input'].forEach(ev=>{[E.fmt,E.q,E.bg,E.sc].forEach(el=>el.addEventListener(ev,expUpdate))});
+// Nome sugerido: o da foto atual + _psx (ou 'retroit' sem foto); sem caracteres que o sistema de arquivos recusa
+const safeName=s=>(String(s||'').replace(/[\\/:*?"<>|\u0000-\u001f]/g,'').replace(/\.+$/,'').trim().slice(0,80))||'retroit';
+const suggestedName=()=>cur>=0&&FILES[cur]?safeName(FILES[cur].name.replace(/\.[^.]+$/,'')+'_retroit'):'retroit';
+// Salva escolhendo a pasta e o nome (File System Access API: Chrome e Edge); sem ela, baixa com o nome dado. Devolve 'salvo', 'cancelado' ou 'baixado'.
+async function saveWithPicker(makeBlob,name,mime,ext,desc){
+  let handle=null;
+  if(window.showSaveFilePicker){
+    try{handle=await window.showSaveFilePicker({suggestedName:name,types:[{description:desc,accept:{[mime]:['.'+ext]}}]})}
+    catch(e){if(e&&e.name==='AbortError')return {r:'cancelado'};handle=null}}
+  const blob=await makeBlob();
+  if(handle){try{const w=await handle.createWritable();await w.write(blob);await w.close();return {r:'salvo',name:handle.name}}catch(e){/* sem permissão para gravar ali: cai no download comum */}}
+  download(blob,name);return {r:'baixado',name}}
+$('dl').onclick=()=>{if(fullDirty)draw(false);$('e_name').value=suggestedName();expUpdate();$('exp').showModal()};
+$('e_close').onclick=()=>$('exp').close();
+// Remove metadados do arquivo exportado (PNG: blocos auxiliares; JPEG: APPn e comentários)
+async function scrub(b,meta){
+  if(P.off.includes('meta'))return b;
+  try{
+    const u=new Uint8Array(await b.arrayBuffer()),o=[];
+    if(u[0]===0x89&&u[1]===0x50){const keep=['IHDR','PLTE','tRNS','IDAT','IEND'];let i=8;o.push(u.subarray(0,8));
+      while(i+8<=u.length){const n=((u[i]<<24)|(u[i+1]<<16)|(u[i+2]<<8)|u[i+3])>>>0,t=String.fromCharCode(u[i+4],u[i+5],u[i+6],u[i+7]),e=i+12+n;if(keep.includes(t))o.push(u.subarray(i,e));i=e}
+      const kp=(meta||[]).filter(e=>e.keep&&e.edit&&e.v);const nb=new Blob(o,{type:b.type});return kp.length?pngWithText(new Uint8Array(await nb.arrayBuffer()),kp):nb}
+    if(u[0]===0xFF&&u[1]===0xD8){let i=2;o.push(u.subarray(0,2));
+      while(i+4<=u.length&&u[i]===0xFF){const m=u[i+1];if(m===0xDA){o.push(u.subarray(i));break}const n=(u[i+2]<<8)|u[i+3],e=i+2+n;if(!((m>=0xE1&&m<=0xEF)||m===0xFE))o.push(u.subarray(i,e));i=e}
+      const kp=(meta||[]).filter(e=>e.keep&&e.edit&&e.v&&WTAGS[e.k]);const nb=new Blob(o,{type:b.type});return kp.length?jpegWithExif(new Uint8Array(await nb.arrayBuffer()),kp):nb}
+  }catch(e){}
+  return b}
+const toBlob=(c,t,q,m)=>new Promise(r=>c.toBlob(async b=>r(await scrub(b,m)),t,q));
+$('e_dl').onclick=async()=>{const fmt=E.fmt.value,nm=safeName($('e_name').value)+'.'+fmt;
+  try{const b=await toBlob(expCanvas(),MIME[fmt],E.q.value/100,curMeta());download(b,nm);E.msg.textContent='Arquivo gerado: '+nm+'.'}
+  catch(e){E.msg.textContent='Não foi possível gerar o arquivo ('+(e&&e.message||e)+').'}};
+$('e_dl2').onclick=async()=>{const fmt=E.fmt.value,nm=safeName($('e_name').value)+'.'+fmt;
+  try{const o=await saveWithPicker(()=>toBlob(expCanvas(),MIME[fmt],E.q.value/100,curMeta()),nm,MIME[fmt],fmt,fmt.toUpperCase());
+    E.msg.textContent=o.r==='cancelado'?'Cancelado.':o.r==='salvo'?'Salvo como '+o.name+'.':'Arquivo gerado: '+o.name+'.'}
+  catch(e){E.msg.textContent='Não foi possível salvar o arquivo ('+(e&&e.name?e.name+': ':'')+(e&&e.message||e)+'). Tente "Baixar".'}};
+$('e_copy').onclick=async()=>{const b=await toBlob(expCanvas(),'image/png',undefined,curMeta());try{await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);E.msg.textContent='Copiado como PNG.'}catch(e){E.msg.textContent='O navegador não permitiu copiar. Use Baixar.'}};
+let busy=false;
+$('e_all').onclick=async()=>{
+  if(busy||FILES.length<2)return;busy=true;const fmt=E.fmt.value,q=E.q.value/100,used=new Set();let total=0;
+  try{
+    // o seletor de pasta abre ANTES de processar (precisa do clique do usuário); o ZIP é montado depois que o destino é escolhido
+    const make=async()=>{const out=[];
+      for(let i=0;i<FILES.length;i++){
+        E.msg.textContent='Processando '+(i+1)+' de '+FILES.length+'…';await new Promise(r=>setTimeout(r,0));
+        const c=process(FILES[i].img,false).canvas,b=await toBlob(expCanvasFrom(c),MIME[fmt],q,FILES[i].meta);
+        let nm=FILES[i].name.replace(/\.[^.]+$/,'')+'_retroit',k=nm,j=2;while(used.has(k+'.'+fmt))k=nm+'-'+(j++);used.add(k+'.'+fmt);
+        out.push({name:k+'.'+fmt,data:new Uint8Array(await b.arrayBuffer())})}
+      total=out.length;return makeZip(out)};
+    const o=await saveWithPicker(make,safeName($('e_name').value)+'-lote.zip','application/zip','zip','ZIP');
+    E.msg.textContent=o.r==='cancelado'?'Cancelado.':'ZIP com '+total+' imagens '+(o.r==='salvo'?'salvo como '+o.name:'gerado')+'.'
+  }catch(e){E.msg.textContent='Falhou ao gerar o lote.'}
+  busy=false;render()};
+// ZIP (sem compressão)
+const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?(0xEDB88320^(c>>>1)):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRCT[(c^u8[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function makeZip(files){
+  const enc=new TextEncoder(),parts=[],cd=[];let off=0;
+  const d=new Date(),dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF,dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+  for(const f of files){const nm=enc.encode(f.name),crc=crc32(f.data),n=f.data.length;
+    const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x800,true);h.setUint16(8,0,true);h.setUint16(10,dt,true);h.setUint16(12,dd,true);h.setUint32(14,crc,true);h.setUint32(18,n,true);h.setUint32(22,n,true);h.setUint16(26,nm.length,true);h.setUint16(28,0,true);
+    parts.push(new Uint8Array(h.buffer),nm,f.data);
+    const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x800,true);c.setUint16(10,0,true);c.setUint16(12,dt,true);c.setUint16(14,dd,true);c.setUint32(16,crc,true);c.setUint32(20,n,true);c.setUint32(24,n,true);c.setUint16(28,nm.length,true);c.setUint16(30,0,true);c.setUint16(32,0,true);c.setUint16(34,0,true);c.setUint16(36,0,true);c.setUint32(38,0,true);c.setUint32(42,off,true);
+    cd.push(new Uint8Array(c.buffer),nm);off+=30+nm.length+n}
+  const cdLen=cd.reduce((a,b)=>a+b.length,0);
+  const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(4,0,true);e.setUint16(6,0,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdLen,true);e.setUint32(16,off,true);e.setUint16(20,0,true);
+  return new Blob([...parts,...cd,new Uint8Array(e.buffer)],{type:'application/zip'})}
+const og=$('orig');og.onpointerdown=()=>{showOrig=true;render()};['pointerup','pointerleave'].forEach(ev=>og.addEventListener(ev,()=>{if(showOrig){showOrig=false;render()}}));
+$('rnd').onclick=()=>{const r=(a,b)=>a+Math.random()*(b-a);
+  P=fresh({pixel:Math.round(r(2,8)),bits:Math.round(r(3,6)),dither:['bayer4','bayer8'][Math.round(Math.random())],gamma:r(.8,1.3),lift:r(0,.08),sat:r(.6,1.3),contrast:r(.9,1.3),tonR:r(.9,1.15),tonB:r(.8,1.1),scan:r(0,.2),vig:r(0,.5),halftone:Math.random()<.3?r(.3,.8):0,noise:r(0,.05),soft:r(0,.4)});sync();render()};
+
+// Renderização (pipeline reordenável)
+const small=document.createElement('canvas'),R={px:4,dot:8};
+let FRAME=0; // número do quadro (modo Animar); só entra no ruído do NTSC com a flag ntVary
+let dragging=false,sel='pixel',slow=false,fullDirty=false,timer=null;
+const dat=c=>{const x=c.getContext('2d',{willReadFrequently:true});return [x,x.getImageData(0,0,c.width,c.height)]};
+function stColor(c){
+  const [x,id]=dat(c),d=id.data,lut=new Float32Array(256);
+  for(let i=0;i<256;i++)lut[i]=Math.pow(i/255,P.gamma);
+  for(let i=0;i<d.length;i+=4){
+    let r=lut[d[i]],g=lut[d[i+1]],b=lut[d[i+2]];
+    if(P.tonR!==1||P.tonG!==1||P.tonB!==1){const cl=(v,k)=>Math.pow(Math.min(1,Math.max(0,v/255*k)),P.gamma);r=cl(d[i],P.tonR);g=cl(d[i+1],P.tonG);b=cl(d[i+2],P.tonB)}
+    const l=r*.299+g*.587+b*.114;
+    r=l+(r-l)*P.sat;g=l+(g-l)*P.sat;b=l+(b-l)*P.sat;
+    r=(r-.5)*P.contrast+.5;g=(g-.5)*P.contrast+.5;b=(b-.5)*P.contrast+.5;
+    if(P.lift){r=P.lift+r*(1-P.lift);g=P.lift+g*(1-P.lift);b=P.lift+b*(1-P.lift)}
+    d[i]=r*255;d[i+1]=g*255;d[i+2]=b*255;
+  }
+  x.putImageData(id,0,0);return c}
+// Média exata por bloco (ponderada pelo alpha). Mesma conta do shader, para os dois baterem.
+function boxDown(c,sw,sh){
+  const W=c.width,H=c.height,s=dat(c)[1].data,o=new ImageData(sw,sh),d=o.data;
+  for(let y=0;y<sh;y++){const y0=Math.min(H-1,Math.floor(y*H/sh)),y1=Math.min(H,Math.max(y0+1,Math.floor((y+1)*H/sh)));
+    for(let x=0;x<sw;x++){const x0=Math.min(W-1,Math.floor(x*W/sw)),x1=Math.min(W,Math.max(x0+1,Math.floor((x+1)*W/sw)));
+      let r=0,g=0,b=0,a=0;
+      for(let yy=y0;yy<y1;yy++)for(let xx=x0;xx<x1;xx++){const i=(yy*W+xx)*4,w=s[i+3];r+=s[i]*w;g+=s[i+1]*w;b+=s[i+2]*w;a+=w}
+      const j=(y*sw+x)*4,n=(y1-y0)*(x1-x0);
+      if(a>0){d[j]=r/a;d[j+1]=g/a;d[j+2]=b/a}
+      d[j+3]=a/n}}
+  return o}
+function stPixel(c){
+  const W=c.width,H=c.height,px=R.px,sw=Math.max(1,Math.ceil(W/px)),sh=Math.max(1,Math.ceil(H/px));
+  small.width=sw;small.height=sh;const sc=small.getContext('2d',{willReadFrequently:true});
+  sc.imageSmoothingEnabled=P.down!=='nearest';sc.imageSmoothingQuality='high';
+  let id;
+  if(P.down==='box')id=boxDown(c,sw,sh);
+  else{sc.drawImage(c,0,0,sw,sh);id=sc.getImageData(0,0,sw,sh)}
+  const d=id.data;
+  const n=(1<<P.bits)-1,mat=P.dither==='bayer8'?BAYER8:BAYER4,ms=P.dither==='bayer8'?8:4,da=P.dither==='none'?0:P.ditherAmt;
+  for(let y=0;y<sh;y++)for(let x=0;x<sw;x++){
+    const i=(y*sw+x)*4,m=.5+(mat[(y%ms)*ms+(x%ms)]-.5)*da;
+    for(let k=0;k<3;k++)d[i+k]=Math.max(0,Math.min(n,Math.floor(d[i+k]/255*n+m)))/n*255;
+    if(P.alpha==='hard')d[i+3]=d[i+3]>=128?255:0;
+  }
+  sc.putImageData(id,0,0);
+  const out=document.createElement('canvas');out.width=W;out.height=H;const o=out.getContext('2d',{willReadFrequently:true});
+  if(P.soft>0){o.imageSmoothingEnabled=true;o.imageSmoothingQuality='low';o.drawImage(small,0,0,sw*px,sh*px);o.imageSmoothingEnabled=false;o.globalAlpha=1-P.soft*.75;o.drawImage(small,0,0,sw*px,sh*px);o.globalAlpha=1}
+  else{o.imageSmoothingEnabled=false;o.drawImage(small,0,0,sw*px,sh*px)}
+  return out}
+function stHalftone(c){
+  const W=c.width,H=c.height,[x,id]=dat(c),q=id.data;
+  const t=P.angle*Math.PI/180,ct=Math.cos(t),st=Math.sin(t),tp=2*Math.PI/R.dot;
+  for(let y=0;y<H;y++)for(let xx=0;xx<W;xx++){
+    const i=(y*W+xx)*4,u=(xx*ct+y*st)*tp,v=(-xx*st+y*ct)*tp,cc=(Math.cos(u)+Math.cos(v)+2)/4;
+    const tone=(q[i]*.299+q[i+1]*.587+q[i+2]*.114)/255,ink=Math.max(0,Math.min(1,(cc-tone)/.08+.5)),f=1-P.halftone*ink;
+    q[i]*=f;q[i+1]*=f;q[i+2]*=f}
+  x.putImageData(id,0,0);return c}
+function stScan(c){
+  const W=c.width,H=c.height,[x,id]=dat(c),q=id.data,per=P.scanPx>0?Math.max(2,Math.round(P.scanPx*R.ratio)*2):P.off.includes('pixel')?4:Math.max(2,R.px*2);
+  for(let y=0;y<H;y++){const f=1-P.scan*(.5+.5*Math.cos(y*2*Math.PI/per));for(let xx=0;xx<W;xx++){const i=(y*W+xx)*4;q[i]*=f;q[i+1]*=f;q[i+2]*=f}}
+  x.putImageData(id,0,0);return c}
+function stVig(c){
+  const W=c.width,H=c.height,[x,id]=dat(c),q=id.data;
+  for(let y=0;y<H;y++){const vy=(y/H-.5)*2;for(let xx=0;xx<W;xx++){const vx=(xx/W-.5)*2,f=1-P.vig*((vx*vx+vy*vy)/2),i=(y*W+xx)*4;q[i]*=f;q[i+1]*=f;q[i+2]*=f}}
+  x.putImageData(id,0,0);return c}
+// Hash por (x, y, quadro): o mesmo do shader (hu/rnd em retroit.frag), para o ruído bater bit a bit
+const hu32=x=>{x^=x>>>16;x=Math.imul(x,0x7feb352d);x^=x>>>15;x=Math.imul(x,0x846ca68b);x^=x>>>16;return x>>>0};
+const hrnd=(a,b,c,seed=42)=>{const i=hu32((Math.imul(c,0xC2B2AE35)+seed)>>>0),m=hu32((((b+0x85EBCA6B)>>>0)^i)>>>0),h=hu32((Math.imul(a,0x9E3779B1)^m)>>>0);return (h>>>8)/16777216};
+// Ruído branco: muda a cada quadro no modo Animar (FRAME) e é reproduzível numa foto parada
+function stNoise(c){
+  const W=c.width,[x,id]=dat(c),q=id.data;
+  for(let i=0,p=0;i<q.length;i+=4,p++){const nz=(hrnd(p%W,(p/W)|0,FRAME)-.5)*255*P.noise;q[i]+=nz;q[i+1]+=nz;q[i+2]+=nz}
+  x.putImageData(id,0,0);return c}
+function stPalette(c){
+  const W=c.width,H=c.height,[x,id]=dat(c),d=id.data;
+  const pal=paletteFor(d);lastPal=pal;
+  const cache=new Int16Array(32768).fill(-1);
+  const near=(r,g,b)=>{let bi=0,bd=1e9;for(let i=0;i<pal.length;i++){const p=pal[i],dr=r-p[0],dg=g-p[1],db=b-p[2],e=dr*dr*.3+dg*dg*.59+db*db*.11;if(e<bd){bd=e;bi=i}}return bi};
+  const cell=P.off.includes('pixel')?1:Math.max(1,R.px),amp=255/Math.cbrt(pal.length)*P.palDither;
+  for(let y=0;y<H;y++){
+    const cy=((y/cell)|0)&3;
+    for(let xx=0;xx<W;xx++){
+      const i=(y*W+xx)*4;if(d[i+3]<1)continue;
+      const o=(BAYER4[cy*4+(((xx/cell)|0)&3)]-.5)*amp;
+      const r=Math.max(0,Math.min(255,d[i]+o)),g=Math.max(0,Math.min(255,d[i+1]+o)),b=Math.max(0,Math.min(255,d[i+2]+o));
+      const key=(r>>3<<10)|(g>>3<<5)|(b>>3);
+      let k=cache[key];if(k<0){k=near((r>>3<<3)+4,(g>>3<<3)+4,(b>>3<<3)+4);cache[key]=k}
+      const p=pal[k];d[i]=p[0];d[i+1]=p[1];d[i+2]=p[2];
+    }
+  }
+  x.putImageData(id,0,0);return c}
+// NTSC / VHS (aproximação do ntsc-rs em YIQ)
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hblur(src,W,H,r){
+  if(r<1)return src;
+  const out=new Float32Array(W*H),n=2*r+1;
+  for(let y=0;y<H;y++){const o=y*W;let s=0;
+    for(let x=-r;x<=r;x++)s+=src[o+Math.min(W-1,Math.max(0,x))];
+    for(let x=0;x<W;x++){out[o+x]=s/n;s+=src[o+Math.min(W-1,x+r+1)]-src[o+Math.max(0,x-r)]}}
+  return out}
+function ntscProcess(d,W,H,p,ratio){
+  const rnd=mulberry(42+(p.ntVary?FRAME:0)),N=W*H,Y=new Float32Array(N),I=new Float32Array(N),Q=new Float32Array(N),A=new Uint8ClampedArray(N);
+  const sc=v=>Math.round(v*ratio),RS=!!p.ntRs,fr=p.ntVary?FRAME:0;
+  // onda de borda: desloca cada linha
+  const wave=sc(p.ntWave),hh=sc(p.ntHeadH),hsh=sc(p.ntHeadShift);
+  for(let y=0;y<H;y++){
+    let dx=0;if(wave>0){const n=Math.sin(y*.11)*.5+Math.sin(y*.037+1.3)*.3+((RS?hrnd(y,7,fr):rnd())-.5)*.4;dx=Math.round(n*wave)}
+    if(RS&&hh>0){const t=(y-(H-hh))/hh;if(t>0)dx+=Math.round(hsh*t*t+(hrnd(y,8,fr)-.5)*.3*hsh)} // cabeça de fita: as últimas linhas se curvam
+    if(p.ntInterlace>0&&(y&1))dx+=Math.round(p.ntInterlace*3*ratio); // campo ímpar deslocado em relação ao par
+    for(let x=0;x<W;x++){const sx=Math.min(W-1,Math.max(0,x-dx)),i=(y*W+sx)*4,j=y*W+x,r=d[i],g=d[i+1],b=d[i+2];
+      Y[j]=.299*r+.587*g+.114*b;I[j]=.596*r-.274*g-.322*b;Q[j]=.211*r-.523*g+.312*b;A[j]=d[i+3]}}
+  // luma: smear e ringing
+  let Yp=Y;
+  if(p.ntBand>0){ // passa-baixa de luma: seno cardinal com janela de Hamming, 17 pontos (ntsc-rs anula listras finas e preserva as largas)
+    const kb=[];let ks=0;for(let i=-8;i<=8;i++){const h=i===0?2*p.ntBand:Math.sin(2*Math.PI*p.ntBand*i)/(Math.PI*i),w=.54+.46*Math.cos(Math.PI*i/9);kb.push(h*w);ks+=h*w}
+    const o=new Float32Array(N);for(let y=0;y<H;y++){const r=y*W;for(let x=0;x<W;x++){let a=0;for(let i=-8;i<=8;i++)a+=kb[i+8]*Y[r+Math.min(W-1,Math.max(0,x+i))];o[r+x]=a/ks}}Yp=o}
+  else if(p.ntSmear>0)Yp=hblur(Yp,W,H,sc(p.ntSmear));
+  if(p.ntRing>0){const bl=hblur(Yp,W,H,Math.max(1,sc(2)));const o=new Float32Array(N);for(let i=0;i<N;i++)o[i]=Yp[i]+p.ntRing*1.5*(Yp[i]-bl[i]);Yp=o}
+  if(p.ntLumaV>0){ // borrão vertical da luma: [1 2 1]/4 (1 passo) ou [1 4 6 4 1]/16 (2 passos)
+    const kv=p.ntLumaV>=2?[1,4,6,4,1]:[1,2,1],kn=kv.reduce((a,b)=>a+b),hv=kv.length>>1,o=new Float32Array(N);
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){let a=0;for(let k=-hv;k<=hv;k++)a+=kv[k+hv]*Yp[Math.min(H-1,Math.max(0,y+k))*W+x];o[y*W+x]=a/kn}
+    Yp=o}
+  if(p.ntEdge>0){ // transitório do filtro na borda esquerda: primeiras colunas escuras, depois estouro (perfil medido no ntsc-rs sobre cinza)
+    const S=[.105,.445,.877,1.185,1.295,1.257,1.166,1.085,1.031,1.007];
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const xi=Math.floor(x/ratio);if(xi>=10)break;Yp[y*W+x]*=1+p.ntEdge*(S[xi]-1)}}
+  // croma: borrão horizontal e atraso
+  const cr=sc(p.ntChroma);let Ip=hblur(I,W,H,cr),Qp=hblur(Q,W,H,cr);
+  const dl=sc(p.ntDelay);
+  if(dl>0){const I2=new Float32Array(N),Q2=new Float32Array(N);for(let y=0;y<H;y++){const o=y*W;for(let x=0;x<W;x++){const s=o+Math.max(0,x-dl);I2[o+x]=Ip[s];Q2[o+x]=Qp[s]}}Ip=I2;Qp=Q2}
+  // vazamento vertical de cor: média de N linhas, da linha y-N/2 até y+N/2-1
+  const cv=sc(p.ntChromaV);
+  if(cv>1){const lo=-(cv>>1),hi=cv-(cv>>1)-1,I3=new Float32Array(N),Q3=new Float32Array(N);
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){let si=0,sq=0;for(let k=lo;k<=hi;k++){const j=Math.min(H-1,Math.max(0,y+k))*W+x;si+=Ip[j];sq+=Qp[j]}I3[y*W+x]=si/cv;Q3[y*W+x]=sq/cv}
+    Ip=I3;Qp=Q3}
+  if(p.ntChromaGain!==1)for(let j=0;j<N;j++){Ip[j]*=p.ntChromaGain;Qp[j]*=p.ntChromaGain}
+  // ruído composto (luma) e de croma, em riscos horizontais do tamanho do grão
+  const g=Math.max(1,sc(p.ntGrain)),gc=g*2,amp=p.ntNoise*255,ampc=p.ntCNoise*255;
+  if(RS){ // ruído por hash (igual ao shader), correlacionado entre 3 linhas vizinhas, como no ntsc-rs
+    const k3=2/Math.sqrt(5.24),vn=(gx,y,k)=>{const a=Math.max(0,y-1),b=Math.min(H-1,y+1);return (hrnd(gx,a*5+k,fr)+1.8*hrnd(gx,y*5+k,fr)+hrnd(gx,b*5+k,fr)-1.9)*k3}; // pesos 1; 1,8; 1 = correlação vertical medida no ntsc-rs (0,69 e 0,19)
+    const ph=p.ntPhase,KP=[1,2,3,3,2,1],kpn=2/Math.sqrt(28),rowTh=new Float32Array(H); // uma rotação de croma por linha, vizinhança 6 linhas: correlação vertical 0,89; 0,64; 0,36 como no ntsc-rs
+    if(ph>0)for(let y=0;y<H;y++){let a=0;for(let i=-2;i<=3;i++)a+=KP[i+2]*hrnd(0,Math.min(H-1,Math.max(0,y+i))*5+3,fr);rowTh[y]=(a-6)*kpn*ph}
+    for(let y=0;y<H;y++){const o=y*W,fm=1+p.ntFieldNoise*((y&1)?-1:1);
+      for(let x=0;x<W;x++){
+        if(ph>0){const th=rowTh[y],c=Math.cos(th),s2=Math.sin(th),i0=Ip[o+x],q0=Qp[o+x];Ip[o+x]=i0*c-q0*s2;Qp[o+x]=i0*s2+q0*c}
+        if(amp>0)Yp[o+x]+=vn((x/g)|0,y,0)*amp*fm;
+        if(ampc>0){Ip[o+x]+=vn((x/gc)|0,y,1)*ampc*fm;Qp[o+x]+=vn((x/gc)|0,y,2)*ampc*fm}}}
+  }else if(amp>0||ampc>0)for(let y=0;y<H;y++){const o=y*W,fm=1+p.ntFieldNoise*((y&1)?-1:1);let v=0,vc=0,ic=0,qc=0;
+    for(let x=0;x<W;x++){if(x%g===0)v=(rnd()-.5)*2*amp*fm;if(x%gc===0){ic=(rnd()-.5)*2*ampc*fm;qc=(rnd()-.5)*2*ampc*fm}
+      Yp[o+x]+=v;Ip[o+x]+=ic;Qp[o+x]+=qc}}
+  // snow: riscos brancos curtos
+  if(p.ntSnow>0&&RS){const pr=Math.min(1,p.ntSnow*4);for(let y=0;y<H;y++){if(hrnd(y,901,fr)>=pr)continue;const x0=Math.floor(hrnd(y,902,fr)*W),len=Math.max(2,sc(Math.floor(4+hrnd(y,903,fr)*26))),o=y*W;
+    for(let x=x0;x<Math.min(W,x0+len);x++){const t=1-(x-x0)/len;Yp[o+x]=Yp[o+x]+(255-Yp[o+x])*t;Ip[o+x]*=1-t;Qp[o+x]*=1-t}}}
+  else if(p.ntSnow>0){const n=Math.round(p.ntSnow*H*4);for(let k=0;k<n;k++){const y=Math.floor(rnd()*H),x0=Math.floor(rnd()*W),len=Math.max(2,sc(4+rnd()*26)),o=y*W;
+    for(let x=x0;x<Math.min(W,x0+len);x++){const t=1-(x-x0)/len;Yp[o+x]=Yp[o+x]+(255-Yp[o+x])*t;Ip[o+x]*=1-t;Qp[o+x]*=1-t}}}
+  // rajada de ruído: de vez em quando, 3 linhas com ruído forte quase na largura toda (aparece sozinha em ~3% dos quadros no ntsc-rs)
+  if(p.ntBurst>0&&hrnd(0,960,fr)<p.ntBurst){
+    const th=sc(p.ntTrackH),rc=1+Math.floor(hrnd(0,961,fr)*Math.max(1,H-th-3)),x0=Math.floor(hrnd(0,962,fr)*.15*W),span=Math.floor((.75+hrnd(0,963,fr)*.25)*W);
+    for(let dy=-1;dy<=1;dy++){const row=rc+dy,w=dy===0?1:.5;if(row<0||row>=H)continue;
+      for(let x=x0;x<Math.min(W,x0+span);x++){const u=hrnd(x,row*7+8,fr);Yp[row*W+x]+=Math.min(1,Math.max(0,2.5*(u-.5)))*255*w}}}
+  // ruído de rastreio: faixa no rodapé com chuvisco brilhante e colorido; cada linha tem a sua gravidade (hash, igual ao shader)
+  if(p.ntTrackH>0&&p.ntTrackSnow>0){const th=sc(p.ntTrackH),g2=Math.max(1,sc(3));
+    for(let y=Math.max(0,H-th);y<H;y++){let sev=hrnd(y,950,fr);sev*=sev;const thr=p.ntTrackSnow*sev*2,o=y*W;
+      for(let x=0;x<W;x++){const gx=(x/g2)|0;
+        if(hrnd(gx,y*7+4,fr)<thr){const u=hrnd(gx,y*7+5,fr);Yp[o+x]+=255*u*u*u;Ip[o+x]+=(hrnd(gx,y*7+6,fr)-.5)*160;Qp[o+x]+=(hrnd(gx,y*7+7,fr)-.5)*160}}}}
+  for(let j=0;j<N;j++){const y=Yp[j],i=Ip[j],q=Qp[j],k=j*4;
+    d[k]=y+.956*i+.621*q;d[k+1]=y-.272*i-.647*q;d[k+2]=y-1.106*i+1.703*q;d[k+3]=A[j]}
+  return d}
+function stNtsc(c){const [x,id]=dat(c);ntscProcess(id.data,c.width,c.height,P,R.ratio);x.putImageData(id,0,0);return c}
+// Distorção: curvatura (barril/almofada), zoom, ondas, fatias glitch, aberração RGB. Fase 0–1 anima.
+function stDistort(c){
+  const W=c.width,H=c.height,[x,id]=dat(c),s=id.data,o=new ImageData(W,H),d=o.data,rt=R.ratio;
+  const k=P.dsBarrel,zoom=P.dsZoom,ax=P.dsWaveX*rt,ay=P.dsWaveY*rt,fq=P.dsWaveFreq,ph=P.dsPhase*2*Math.PI,rgb=P.dsRgb*rt;
+  const slice=Math.max(1,Math.round(P.dsGlitchSize*rt)),rnd=mulberry(42+Math.round(P.dsPhase*1000)),shift=new Int32Array(H),jit=new Int32Array(H);
+  if(P.dsJitter>0){const jr=mulberry(7+Math.round(P.dsPhase*1000));for(let y=0;y<H;y++)jit[y]=Math.round((jr()-.5)*2*P.dsJitter*rt)}
+  if(P.dsGlitch>0){for(let y=0;y<H;y+=slice){const on=rnd()<P.dsGlitch,v=on?Math.round((rnd()-.5)*2*W*.12*P.dsGlitch):0;for(let yy=y;yy<Math.min(H,y+slice);yy++)shift[yy]=v}}
+  const cx=W/2,cy=H/2,asp=W/H;
+  const get=(sx,sy,ch)=>{sx=Math.round(sx);sy=Math.round(sy);if(sx<0||sy<0||sx>=W||sy>=H)return -1;return s[(sy*W+sx)*4+ch]};
+  for(let y=0;y<H;y++){
+    for(let xx=0;xx<W;xx++){
+      let u=(xx-cx)/cx,v=(y-cy)/cy;
+      if(k!==0){const r2=u*u*asp*asp/(asp*asp)+v*v;const f=1+k*r2+k*2*r2*r2;u*=f;v*=f}
+      u/=zoom;v/=zoom;
+      let sx=cx+u*cx,sy=cy+v*cy;
+      if(ax)sx+=ax*Math.sin(2*Math.PI*(y/H)*fq+ph);
+      if(ay)sy+=ay*Math.sin(2*Math.PI*(xx/W)*fq+ph);
+      sx+=shift[y]+jit[y];
+      const j=(y*W+xx)*4;
+      const a=get(sx,sy,3);
+      if(a<0){d[j+3]=0;continue}
+      const r=rgb?get(sx-rgb,sy,0):get(sx,sy,0),b=rgb?get(sx+rgb,sy,2):get(sx,sy,2);
+      d[j]=r<0?0:r;d[j+1]=get(sx,sy,1);d[j+2]=b<0?0:b;d[j+3]=a;
+    }
+  }
+  x.putImageData(o,0,0);return c}
+// CRT: a mesma conta do stCrt do shader, tudo em escala de pixel (blocos inteiros, bloom em passos inteiros, celulas de fosforo com cantos arredondados)
+function stCrt(c){
+  const W=c.width,H=c.height,[x,id]=dat(c),s=id.data,o=new ImageData(W,H),d=o.data;
+  const k=P.crt,cr=k*P.crtCorner,rb=P.off.includes('pixel')?1:Math.max(1,Math.round(R.px)),bk=k*P.crtBloom*.9,A=1-k*P.crtMask,G=1+k*P.crtMask*.5,gI=1-k*P.crtMaskYInt;
+  const lock=P.crtLock>.5,mw=Math.max(1,Math.round(P.crtMaskW)),gxP=Math.max(0,Math.round(P.crtMaskX)),mh=Math.round(P.crtMaskH),gyP=Math.max(0,Math.round(P.crtMaskY)),Rr=Math.round(P.crtMaskR);
+  const at=(qx,qy)=>(qx<0||qy<0||qx>=W||qy>=H)?-1:(qy*W+qx)*4;
+  for(let y=0;y<H;y++)for(let xx=0;xx<W;xx++){
+    const j=(y*W+xx)*4;d[j+3]=255;
+    const bpx=Math.floor(xx/rb),bpy=Math.floor(y/rb),pox=xx-bpx*rb,poy=y-bpy*rb;
+    const bu=(bpx*rb+rb*.5)/W*2-1,bv=(bpy*rb+rb*.5)/H*2-1,u=bu,v=bv;
+    if(Math.abs(u)>1||Math.abs(v)>1)continue;
+    if(Math.hypot(Math.max(Math.abs(u)-(1-cr),0),Math.max(Math.abs(v)-(1-cr),0))>cr)continue;
+    const sx=(u*.5+.5)*W-.5,sy=(v*.5+.5)*H-.5,ox=Math.floor(sx/rb)*rb+pox,oy=Math.floor(sy/rb)*rb+poy;
+    const i0=at(ox,oy),o1=rb,o2=2*rb;
+    const i1=[at(ox+o1,oy),at(ox-o1,oy),at(ox,oy+o1),at(ox,oy-o1)],i2=[at(ox+o2,oy),at(ox-o2,oy),at(ox,oy+o2),at(ox,oy-o2)];
+    let idx,cx,cw,ly=0,ch=0,inRow=true,gapx=false;
+    if(lock){const lx=(xx+((P.crtStagger>.5&&(bpy&1)===1)?Math.floor(rb/2):0))%rb;idx=Math.min(2,Math.floor(lx*3/rb));const x0=Math.floor(idx*rb/3),x1=Math.floor((idx+1)*rb/3);cw=Math.max(1,x1-x0);cx=lx-x0;const gxx=Math.min(gxP,cw-1);gapx=cx>=cw-gxx;cw-=gxx;const gy=Math.max(0,Math.min(rb-1,gyP));if(gy>0){ly=y%rb;ch=rb-gy;inRow=ly<ch}}
+    else{const rowi=(mh>0&&gyP>0)?Math.floor(y/(mh+gyP)):Math.floor(y/mw),pw=mw+gxP,px=xx+((P.crtStagger>.5&&(rowi&1)===1)?Math.floor(3*pw/2):0);idx=Math.floor(px/pw)%3;cw=mw;cx=px%pw;gapx=cx>=mw;if(mh>0&&gyP>0){ly=y%(mh+gyP);ch=mh;inRow=ly<mh}}
+    let cover=1;const lm=i0<0?0:(.299*s[i0]+.587*s[i0+1]+.114*s[i0+2])/255;
+    if(Rr>0&&ch>0&&inRow&&!gapx){const dxc=Math.min(cx,cw-1-cx),dyc=Math.min(ly,ch-1-ly);if(dxc<Rr&&dyc<Rr){const dd=Math.hypot(Rr-(dxc+.5),Rr-(dyc+.5));cover=Math.floor(Math.max(0,Math.min(1,Rr+.5-dd))*2+.5)/2}}
+    for(let ch2=0;ch2<3;ch2++){
+      const g=i=>i<0?0:s[i+ch2]/255,b0=g(i0);
+      const bl=(b0*2+g(i1[0])+g(i1[1])+g(i1[2])+g(i1[3])+(g(i2[0])+g(i2[1])+g(i2[2])+g(i2[3]))*.5)/8;
+      const mm=(gapx?A:(ch2===idx?A+(1-A)*cover:A))*(inRow?1:1-k*P.crtMaskYInt*(P.crtStagger>.5?1-.85*Math.min(1,Math.max(0,lm)):1));
+      const r=(b0+bk*Math.max(bl-.45,0))*mm*G;
+      d[j+ch2]=Math.max(0,Math.min(255,Math.round(r*255)))}
+  }
+  x.putImageData(o,0,0);return c}
+const STG={
+ color:{n:'Cor',d:()=>'gama · sat · contraste · tom',fn:stColor},
+ pixel:{n:'Pixel + cor reduzida',d:()=>`${P.pixel}px · ${P.bits} bits · ${P.dither}`,fn:stPixel},
+ palette:{n:'Paleta',d:()=>PALS[P.palette].n.split(' (')[0],fn:stPalette},
+ ntsc:{n:'NTSC / VHS',d:()=>`croma ${P.ntChroma}px · ruído ${P.ntNoise}`,fn:stNtsc},
+ distort:{n:'Distorção',d:()=>`curva ${P.dsBarrel} · glitch ${P.dsGlitch} · fase ${P.dsPhase}`,fn:stDistort},
+ halftone:{n:'Halftone',d:()=>`pontos ${P.dot}px · ${P.angle}°`,fn:stHalftone},
+ scan:{n:'Linhas de TV',d:()=>`força ${P.scan}`,fn:stScan},
+ vig:{n:'Vinheta',d:()=>`força ${P.vig}`,fn:stVig},
+ noise:{n:'Ruído branco',d:()=>`força ${P.noise}`,fn:stNoise},
+ crt:{n:'CRT',d:()=>`força ${P.crt} · máscara ${P.crtMask}`,fn:stCrt},
+ meta:{n:'Remover metadados',d:()=>'EXIF · GPS · ICC · texto',fn:c=>c}
+};
+// Arrastar reordena; soltar na linha de cima desativa a etapa, na de baixo ativa
+function moveTo(from,to,off){
+  const k=P.order[from];
+  if(from!==to){P.order.splice(from,1);P.order.splice(to,0,k);P.order=P.order.filter(x=>x!=='meta').concat('meta')}
+  P.off=P.off.filter(x=>x!==k);if(off)P.off.push(k);
+  renderPipe();render()}
+function renderPipe(){
+  const ul=$('pipe'),uo=$('pipeOff');ul.innerHTML='';uo.innerHTML='';let n=0;
+  P.order.forEach((k,i)=>{
+    if(k==='meta'&&AN.on)return; // remover metadados não faz sentido em animação
+    const off=P.off.includes(k),li=document.createElement('li');
+    li.draggable=true;li.className='stg'+(off?' off':'')+(k===sel?' sel':'');
+    li.innerHTML=`<span class="grip">⠿</span><span class="num">${off?'–':++n}</span><div class="nm"><b>${STG[k].n}</b></div>${AN.on&&AN.stg[k]&&AN.stg[k].mode==='random'?'<span title="Transição aleatória">🎲</span>':''}`;
+    li.ondragstart=e=>{dragging=true;e.dataTransfer.setData('text/plain',String(i));e.dataTransfer.effectAllowed='move';li.classList.add('drag')};
+    li.ondragend=()=>{dragging=false;renderPipe()};
+    li.ondragover=e=>{e.preventDefault();li.classList.add('over')};
+    li.ondragleave=()=>li.classList.remove('over');
+    li.ondrop=e=>{e.preventDefault();e.stopPropagation();dragging=false;moveTo(+e.dataTransfer.getData('text/plain'),i,off)};
+    li.onclick=()=>{if(sel!==k){sel=k;renderPipe()}};
+    (off?uo:ul).appendChild(li)});
+  showPanel();
+}
+[['pipe',false],['pipeOff',true]].forEach(([id,off])=>{const u=$(id);
+  u.ondragover=e=>e.preventDefault();
+  u.ondrop=e=>{e.preventDefault();dragging=false;moveTo(+e.dataTransfer.getData('text/plain'),P.order.length-1,off)}});
+let pend=false,pendFast=true;
+function queue(fast){pendFast=pendFast&&!!fast;if(!pend){pend=true;requestAnimationFrame(()=>{pend=false;const f=pendFast;pendFast=true;draw(f)})}}
+function render(fast){
+  if(!dragging)renderPipe();
+  const useFast=!!fast&&slow;
+  if(useFast){clearTimeout(timer);timer=setTimeout(()=>{timer=null;queue(false)},160)}
+  queue(useFast)}
+function processCPU(img,fast){
+  const sw0=img.width||img.naturalWidth,sh0=img.height||img.naturalHeight,kFull=Math.min(1,1600/sw0),k=fast?Math.min(kFull,720/sw0):kFull,ratio=k/kFull;
+  R.px=Math.max(1,Math.round(P.pixel*ratio));R.dot=Math.max(2,P.dot*ratio);R.ratio=ratio;
+  const W=Math.max(1,Math.round(sw0*k)),H=Math.max(1,Math.round(sh0*k));
+  let c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d',{willReadFrequently:true}).drawImage(img,0,0,W,H);
+  for(const key of P.order){if(P.off.includes(key))continue;c=STG[key].fn(c)}
+  return {canvas:c,W,H,Wfull:Math.max(1,Math.round(sw0*kFull)),Hfull:Math.max(1,Math.round(sh0*kFull))}}
+// ---- Motor na GPU (WebGL2): o mesmo shader do vídeo (shader/retroit.frag, embutido em <script id="fragsrc">) ----
+const GL={ok:false,cpu:/[?&]cpu\b/.test(location.search)};
+const GLINTS=['ntVary','ntLumaV','ntChromaV','ntRs','ntHeadH','ntHeadShift','pixel','bits','palColors','ntChroma','ntDelay','ntSmear','ntGrain','ntWave'];
+function glInit(){
+  if(GL.cpu)return;
+  try{
+    const cv=document.createElement('canvas'),gl=cv.getContext('webgl2',{antialias:false,premultipliedAlpha:false,preserveDrawingBuffer:true});
+    if(!gl)return;
+    const fsrc=$('fragsrc').textContent.trimStart().replace(/^#version 330\r?\n/,'#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;\n');
+    const vsrc='#version 300 es\nvoid main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));gl_Position=vec4(p*2.-1.,0.,1.);}';
+    const sh=(t,src)=>{const o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(o));return o};
+    const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vsrc));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fsrc));gl.linkProgram(pr);
+    if(!gl.getProgramParameter(pr,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(pr));
+    GL.u={};for(let i=0,n=gl.getProgramParameter(pr,gl.ACTIVE_UNIFORMS);i<n;i++){const a=gl.getActiveUniform(pr,i);GL.u[a.name]={loc:gl.getUniformLocation(pr,a.name),int:a.type!==gl.FLOAT}}
+    GL.gl=gl;GL.pr=pr;GL.vao=gl.createVertexArray();GL.texs={};GL.ok=true;
+    GL.pal=glTex(256,1);
+  }catch(e){console.warn('WebGL2 indisponível, usando a CPU:',e);GL.ok=false}
+}
+function glTex(w,h){
+  const gl=GL.gl,t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  for(const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,v);
+  const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);
+  return {t,f,w,h}}
+const glTexFor=(w,h,tag='a')=>GL.texs[tag+w+'x'+h]||(GL.texs[tag+w+'x'+h]=glTex(w,h));
+function glU(name,v){const u=GL.u[name];if(!u)return;if(u.int)GL.gl.uniform1i(u.loc,Math.round(v));else GL.gl.uniform1f(u.loc,v)}
+function glRun(src,dst,stage,size){
+  const gl=GL.gl;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,src.t);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,GL.pal.t);
+  glU('u_stage',stage);gl.uniform2i(GL.u.u_out.loc,size[0],size[1]);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,dst.f);gl.viewport(0,0,size[0],size[1]);gl.drawArrays(gl.TRIANGLES,0,3)}
+const GLSTAGE={color:0,palette:3,ntsc:4,distort:5,halftone:6,scan:7,vig:8,noise:9,crt:10};
+function glSetPalette(pal){
+  const gl=GL.gl,a=new Uint8Array(256*4);for(let i=0;i<256;i++)a[i*4+3]=255;
+  pal.slice(0,256).forEach((c,i)=>{a[i*4]=c[0];a[i*4+1]=c[1];a[i*4+2]=c[2]});
+  gl.bindTexture(gl.TEXTURE_2D,GL.pal.t);gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,256,1,gl.RGBA,gl.UNSIGNED_BYTE,a);
+  glU('u_palN',Math.min(256,pal.length));lastPal=pal}
+// Fósforo perfect: a entrada vira N linhas x M colunas (caixa) e a saída é exatamente M*B x N*B, com B pixels de saída por pixel da imagem.
+// É o que a máscara de fósforo precisa para ficar pixel perfect (B múltiplo de 3: uma coluna por cor). Limite de 4096 px na saída.
+function fpDims(sw0,sh0,lines,block){
+  const N=Math.max(16,Math.min(2160,Math.round(lines)));let B=Math.max(1,Math.min(16,Math.round(block)));
+  const M=Math.max(1,Math.round(N*sw0/sh0));while(B>1&&(M*B>4096||N*B>4096))B--;
+  return {M,N,B,W:M*B,H:N*B}}
+function processGL(img){
+  const gl=GL.gl,sw0=img.width||img.naturalWidth,sh0=img.height||img.naturalHeight,kFull=Math.min(1,1600/sw0);
+  const fp=P.fpOn>.5?fpDims(sw0,sh0,P.fpLines,P.fpBlock):null;
+  const W=fp?fp.W:Math.max(1,Math.round(sw0*kFull)),H=fp?fp.H:Math.max(1,Math.round(sh0*kFull));
+  const c0=document.createElement('canvas');c0.width=W;c0.height=H;const c0x=c0.getContext('2d');
+  if(fp){const sm=document.createElement('canvas');sm.width=fp.M;sm.height=fp.N;const sx=sm.getContext('2d');sx.imageSmoothingEnabled=true;sx.imageSmoothingQuality='high';sx.drawImage(img,0,0,fp.M,fp.N);c0x.imageSmoothingEnabled=false;c0x.drawImage(sm,0,0,W,H)}
+  else c0x.drawImage(img,0,0,W,H);
+  const A=glTexFor(W,H,'a'),B=glTexFor(W,H,'b');
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);
+  gl.bindTexture(gl.TEXTURE_2D,A.t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c0);
+  gl.useProgram(GL.pr);gl.bindVertexArray(GL.vao);
+  // uniformes: os parâmetros do preset têm o nome da chave
+  for(const k in DEF){const v=P[k];if(typeof v==='number')glU(k,v)}
+  glU('down',P.down==='box'?0:1);glU('dither',P.dither==='none'?0:P.dither==='bayer8'?2:1);glU('alpha',P.alpha==='hard'?0:1);
+  const rpx=fp?fp.B:Math.max(1,Math.round(P.pixel));
+  if(fp)glU('crtLock',1);
+  gl.uniform2i(GL.u.u_full.loc,W,H);glU('u_ratio',1);glU('u_rpx',rpx);glU('u_dot',Math.max(2,P.dot));glU('u_pixOff',fp?0:P.off.includes('pixel')?1:0);glU('u_seed',42);glU('u_frame',FRAME);
+  gl.uniform1i(GL.u.u_tex.loc,0);gl.uniform1i(GL.u.u_pal.loc,1);
+  const pd=PALS[P.palette];
+  if(!P.off.includes('palette')&&pd.list)glSetPalette(pd.list);
+  let cur=A,oth=B;const flip=()=>{const t=cur;cur=oth;oth=t};
+  for(const k of P.order){
+    if(k==='meta'||P.off.includes(k))continue;
+    if(k==='pixel'){
+      const sw=Math.max(1,Math.ceil(W/rpx)),sh=Math.max(1,Math.ceil(H/rpx)),S=glTexFor(sw,sh,'s');
+      glRun(cur,S,1,[sw,sh]);glRun(S,oth,2,[W,H]);flip();continue}
+    if(k==='palette'&&!pd.list){ // paleta adaptativa: median cut (a mesma função da CPU) sobre o resultado das etapas anteriores
+      const d=new Uint8Array(W*H*4);gl.bindFramebuffer(gl.FRAMEBUFFER,cur.f);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,d);glSetPalette(paletteFor(d))}
+    glRun(cur,oth,GLSTAGE[k],[W,H]);flip()}
+  const d=new Uint8ClampedArray(W*H*4);gl.bindFramebuffer(gl.FRAMEBUFFER,cur.f);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,d);
+  const c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').putImageData(new ImageData(d,W,H),0,0);
+  return {canvas:c,W,H,Wfull:W,Hfull:H}}
+glInit();
+function process(img,fast){return GL.ok?processGL(img):processCPU(img,fast)}
+/* Largura do preview: cabe na área (largura e altura) mantendo a proporção da imagem, sem passar de maxW (tamanho real).
+   Só CSS (width:100% + max-height:100%) achatava imagens quadradas ou retrato, porque o max-height não recalcula a largura. */
+let stageMaxW=0;
+function fitStage(maxW){if(maxW)stageMaxW=maxW;const v=stage.parentElement;if(!v||!stage.width||!stage.height||!stageMaxW)return;
+  const aw=v.clientWidth,ah=v.clientHeight;if(!aw||!ah)return;stage.style.width=Math.max(1,Math.floor(Math.min(aw,ah*stage.width/stage.height,stageMaxW)))+'px'}
+if(window.ResizeObserver)new ResizeObserver(()=>fitStage()).observe(stage.parentElement);else addEventListener('resize',()=>fitStage());
+function draw(fast){
+  if(!src)return;
+  const t0=performance.now();
+  if(showOrig){const sw0=src.width||src.naturalWidth,sh0=src.height||src.naturalHeight,k=Math.min(1,1600/sw0),W=Math.round(sw0*k),H=Math.round(sh0*k);
+    stage.width=W;stage.height=H;fitStage(W);ctx.imageSmoothingEnabled=true;ctx.drawImage(src,0,0,W,H);fullDirty=true;return}
+  const r=process(src,fast);
+  stage.width=r.W;stage.height=r.H;fitStage(r.Wfull);ctx.drawImage(r.canvas,0,0);
+  fullDirty=!!fast;if(!fast)slow=(performance.now()-t0)>50;
+  showSwatches();
+}
+// Modo animar: antes -> depois, com duração, curva e vai-e-volta
+const STEP={};for(const [,,items] of SL)for(const [k,,,,st] of items)STEP[k]=st;
+// Curva personalizada: bézier cúbica com 4 pontos livres no quadrado tempo × progresso.
+// Os pontos das pontas dão o início e o fim da transição (quando começa/termina e de onde a onde vai); fora deles a curva fica parada.
+const CV=[[0,0],[.25,.1],[.25,1],[1,1]];
+function cvNorm(){const [p0,p1,p2,p3]=CV;p0[0]=Math.min(p0[0],p3[0]-.02);p3[0]=Math.max(p3[0],p0[0]+.02);
+  p1[0]=Math.min(p3[0],Math.max(p0[0],p1[0]));p2[0]=Math.min(p3[0],Math.max(p1[0],p2[0]))}
+function bezEase(u){
+  const [p0,p1,p2,p3]=CV;if(u<=p0[0])return p0[1];if(u>=p3[0])return p3[1];
+  const k=i=>{const c=3*(p1[i]-p0[i]),b=3*(p2[i]-p1[i])-c;return [p3[i]-p0[i]-c-b,b,c]},[ax,bx,cx]=k(0),[ay,by,cy]=k(1);
+  let lo=0,hi=1,t=.5;for(let i=0;i<24;i++){t=(lo+hi)/2;const x=((ax*t+bx)*t+cx)*t+p0[0];if(x<u)lo=t;else hi=t}
+  return ((ay*t+by)*t+cy)*t+p0[1]}
+const EASE={linear:u=>u,in:u=>u*u,out:u=>1-(1-u)*(1-u),inout:u=>u<.5?2*u*u:1-2*(1-u)*(1-u),custom:bezEase};
+const AN={on:false,play:false,raw:0,t0:0,A:null,B:null,P0:null,offk:'',bOwn:false,side:'A',stg:{},keys:{}};
+const anDur=()=>Math.min(30,Math.max(.5,+$('an_dur').value||3)),anFps=()=>Math.min(30,Math.max(6,Math.round(+$('an_fps').value)||12));
+const anTr=()=>$('an_tr').value;
+function randT(raw){ // caminho aleatório suave, sempre o mesmo (semente 42): sai de 0 e termina em 1, ou volta a 0 se repete
+  const K=Math.max(2,Math.round(anDur()*2)),r=mulberry(42),v=[];for(let i=0;i<=K;i++)v.push(r());
+  v[0]=0;v[K]=$('an_loop').checked?0:1;
+  const x=Math.min(raw,.999999)*K,i=Math.floor(x),f=x-i,sm=f*f*(3-2*f);return v[i]+(v[i+1]-v[i])*sm}
+function tOf(raw){
+  const ez=EASE[$('an_ease').value],tr=anTr();
+  if(tr==='random')return randT(raw);
+  return ez(tr==='boomerang'?(raw<.5?raw*2:2-raw*2):raw)}
+function anFill(){AN.A=fresh(clone(AN.P0));AN.B=fresh(clone(AN.A));AN.bOwn=false}
+// preset interpolado em raw (0..1 na linha do tempo)
+const STAGE_OF={down:'pixel',alpha:'pixel',dither:'pixel',palette:'palette'};
+for(const [stg,,items] of SL)for(const it of items)STAGE_OF[it[0]]=stg;
+const strHash=t=>{let h=2166136261;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0};
+const cfgOf=st=>AN.stg[st]||(AN.stg[st]={mode:'follow',smooth:.5,seed:42,lock:{}});
+// caminho aleatório próprio de cada parâmetro: sai de 0, termina em 1 (ou volta a 0 se repete)
+function randPath(k,raw,c){
+  const rate=.5+(1-c.smooth)*7.5,K=Math.max(2,Math.round(anDur()*rate)),r=mulberry((strHash(k)^Math.imul(c.seed+1,2654435761))>>>0),v=[];
+  for(let i=0;i<=K;i++)v.push(r());v[0]=0;v[K]=$('an_loop').checked?0:1;
+  const x=Math.min(raw,.999999)*K,i=Math.floor(x),f=x-i,sm=f*f*(3-2*f);return v[i]+(v[i+1]-v[i])*sm}
+// Quadros-chave: pontos [tempo 0-1, valor] por parâmetro; interpolação linear, parada antes do primeiro e depois do último
+function keyVal(ks,t){
+  if(t<=ks[0].t)return ks[0].v;const n=ks.length-1;if(t>=ks[n].t)return ks[n].v;
+  let i=0;while(ks[i+1].t<t)i++;const a=ks[i],b=ks[i+1];return a.v+(b.v-a.v)*(t-a.t)/(b.t-a.t)}
+function animP(raw){
+  const A=AN.A,B=AN.B,e=tOf(raw),o={};
+  const ek=k=>{const c=AN.stg[STAGE_OF[k]];if(c&&c.mode==='random')return c.lock[k]?0:randPath(k,raw,c);return e};
+  for(const k in DEF){const a=A[k],b=B[k];
+    if(typeof a==='number'){if(k==='ntOn'||k==='dsOn'||k==='ntVary'||k==='ntRs'){o[k]=a;continue}let v=AN.keys[k]&&AN.keys[k].length?keyVal(AN.keys[k],raw):a+(b-a)*ek(k);if(STEP[k]>=1)v=Math.round(v);o[k]=v}
+    else o[k]=ek(k)<.5?a:b}
+  o.order=e<.5?A.order:B.order;
+  o.off=KEYS.filter(k=>{const x=A.off.includes(k),y=B.off.includes(k);if(ZERO.includes(k)&&AN.keys[k]&&AN.keys[k].some(q=>q.v>0))return false;if(x===y)return x;if(ZERO.includes(k))return false;return e<.5?x:y});
+  return fresh(o)}
+function animShow(raw){
+  AN.raw=raw;FRAME=Math.floor(raw*anDur()*anFps());P=animP(raw);$('an_scrub').value=Math.round(raw*1000);
+  $('an_t').textContent=(raw*anDur()).toFixed(2)+' / '+anDur()+' s';
+  if(typeof kfDraw==='function')kfDraw();
+  if(!src)return;const k=P.off.join();if(k!==AN.offk){AN.offk=k;renderPipe()}
+  draw(slow)}
+function bezDraw(){
+  const X=v=>v*100,Y=v=>(1-v)*100;
+  CV.forEach((q,i)=>{const h=$('an_h'+i);h.setAttribute('cx',X(q[0]));h.setAttribute('cy',Y(q[1]))});
+  for(const [id,a,b] of [['an_l1',0,1],['an_l2',3,2]]){const l=$(id);l.setAttribute('x1',X(CV[a][0]));l.setAttribute('y1',Y(CV[a][1]));l.setAttribute('x2',X(CV[b][0]));l.setAttribute('y2',Y(CV[b][1]))}
+  $('an_bp').setAttribute('d',`M${X(CV[0][0])},${Y(CV[0][1])} C${X(CV[1][0])},${Y(CV[1][1])} ${X(CV[2][0])},${Y(CV[2][1])} ${X(CV[3][0])},${Y(CV[3][1])}`)}
+[0,1,2,3].forEach(i=>{const h=$('an_h'+i);
+  h.onpointerdown=e=>{h.setPointerCapture(e.pointerId);h.dataset.d='1'};
+  h.onpointermove=e=>{if(!h.dataset.d)return;const r=$('an_bsv').getBoundingClientRect(),k=116/r.width,x=(e.clientX-r.left)*k-8,y=(e.clientY-r.top)*k-8;
+    CV[i][0]=Math.min(1,Math.max(0,x/100));CV[i][1]=Math.min(1,Math.max(0,1-y/100));cvNorm();bezDraw();anCommit();animShow(AN.raw)};
+  h.onpointerup=h.onpointercancel=()=>{delete h.dataset.d}});
+function anPlayLabel(){$('an_play').textContent=AN.play?'⏸ Pausar':'▶ Tocar'}
+function animTick(ts){
+  if(!AN.play)return;const dur=anDur();let raw=(ts-AN.t0)/1000/dur;
+  if(raw>=1){if($('an_loop').checked){raw%=1;AN.t0=ts-raw*dur*1000}else{raw=1;AN.play=false;anPlayLabel()}}
+  animShow(raw);if(AN.play)requestAnimationFrame(animTick)}
+function animStop(){AN.play=false;anPlayLabel()}
+function anEditUi(){$('an_ea').classList.toggle('on',AN.side==='A');$('an_eb').classList.toggle('on',AN.side==='B');
+  $('an_ed').textContent=AN.edit?'Editando a pipeline '+(AN.edit==='A'?'de antes':'de depois')+': predefinições, efeitos e sliders valem para ela. Tocar ou mover o cursor aplica.':''}
+function anCommit(){if(AN.edit){AN[AN.edit]=fresh(clone(P));if(AN.edit==='B')AN.bOwn=true;else if(!AN.bOwn)AN.B=fresh(clone(AN.A));AN.edit=null;anEditUi()}}
+function anEdit(w){animStop();anCommit();
+  AN.edit=w;AN.side=w;P=fresh(clone(AN[w]));sync();render();anEditUi()}
+$('an_ea').onclick=()=>anEdit('A');$('an_eb').onclick=()=>anEdit('B');
+$('an_play').onclick=()=>{
+  anCommit();
+  if(AN.play){animStop();return}
+  if(AN.raw>=1)AN.raw=0;AN.play=true;anPlayLabel();AN.t0=performance.now()-AN.raw*anDur()*1000;requestAnimationFrame(animTick)};
+$('an_scrub').oninput=e=>{animStop();anCommit();animShow(+e.target.value/1000)};
+['an_dur','an_fps','an_ease','an_tr','an_loop'].forEach(id=>$(id).onchange=()=>{anCommit();$('an_dur').value=anDur();$('an_fps').value=anFps();$('an_bez').hidden=$('an_ease').value!=='custom';bezDraw();animShow(AN.raw)});
+// Mexer nos controles ou na pipeline com a animação tocando (ou depois de mover o cursor) volta a editar o lado marcado;
+// sem isso a edição ia só para a cópia interpolada e o quadro seguinte a descartava
+const anGuard=e=>{if(!AN.on||AN.edit||AN.busy)return;if(e.target.closest&&e.target.closest('.atr,.rdice,#animtop,#animwrap'))return;anEdit(AN.side)};
+['pointerdown','keydown'].forEach(ev=>{$('ctrls').addEventListener(ev,anGuard,true);$('pipewrap').addEventListener(ev,anGuard,true);document.querySelector('aside').addEventListener(ev,anGuard,true)});
+$('an_cp').onclick=()=>{animStop();anCommit();AN.B=fresh(clone(AN.A));AN.bOwn=false;animShow(AN.raw)};
+// Transição por etapa: aparece só com o Depois marcado
+function animUi(){
+  document.querySelectorAll('.grp').forEach(g=>{
+    const st=g.dataset.stage,at=g.querySelector('.atr');if(!at)return;
+    const show=AN.on&&AN.side==='B',c=cfgOf(st),rnd=show&&c.mode==='random';
+    at.hidden=!show;if(!show){g.querySelectorAll('.rdice').forEach(d=>d.hidden=true);return}
+    at.querySelector('.at_mode').value=c.mode;at.querySelector('.at_r').hidden=c.mode!=='random';
+    at.querySelector('.at_sm').value=c.smooth;at.querySelector('.at_seed').value=c.seed;
+    g.querySelectorAll('.row').forEach(r=>{const d=r.querySelector('.rdice');if(!d)return;d.hidden=!rnd;d.textContent=c.lock[r.dataset.k]?'🔒':'🎲'})})}
+function animCfgChanged(){renderPipe();if(!AN.edit)animShow(AN.raw)}
+document.querySelectorAll('.grp').forEach(g=>{
+  const st=g.dataset.stage,at=g.querySelector('.atr');if(!at)return;
+  at.querySelector('.at_mode').onchange=e=>{cfgOf(st).mode=e.target.value;animUi();animCfgChanged()};
+  at.querySelector('.at_sm').oninput=e=>{cfgOf(st).smooth=+e.target.value;if(!AN.edit)animShow(AN.raw)};
+  at.querySelector('.at_seed').onchange=e=>{cfgOf(st).seed=Math.min(9999,Math.max(0,Math.round(+e.target.value)||0));animCfgChanged()};
+  at.querySelector('.at_dice').onclick=()=>{cfgOf(st).seed=Math.floor(Math.random()*10000);animUi();animCfgChanged()};
+  g.querySelectorAll('.row').forEach(r=>{const d=r.querySelector('.rdice');if(!d)return;
+    d.onclick=e=>{e.preventDefault();e.stopPropagation();const c=cfgOf(st);c.lock[r.dataset.k]=!c.lock[r.dataset.k];animUi();if(!AN.edit)animShow(AN.raw)}})});
+$('animb').onclick=()=>{
+  if(!AN.on){AN.on=true;AN.edit=null;AN.P0=clone(P);anFill();anEditUi();$('animwrap').hidden=false;$('animtop').hidden=false;document.body.classList.add('anim');$('animb').textContent='Sair do modo animar';if(sel==='meta')sel='color';AN.raw=0;AN.edit='A';AN.side='A';AN.stg={};AN.keys={};anEditUi();animUi();bezDraw();renderPipe()}
+  else{animStop();AN.edit=null;AN.on=false;FRAME=0;P=AN.P0;$('animwrap').hidden=true;$('animtop').hidden=true;document.body.classList.remove('anim');$('animb').textContent='Animar…';sync();render()}};
+// quadros da exportação: com repetição ou vai-e-volta o último quadro não repete o primeiro
+function anFrames(){const N=Math.max(2,Math.round(anDur()*anFps())),cyc=anTr()==='boomerang'||$('an_loop').checked;return Array.from({length:N},(_,i)=>cyc?i/N:i/(N-1))}
+$('an_zip').onclick=async()=>{
+  if(busy||!src)return;anCommit();busy=true;animStop();const fr=anFrames(),out=[],m=$('an_msg');
+  try{
+    for(let i=0;i<fr.length;i++){
+      m.textContent='Quadro '+(i+1)+' de '+fr.length+'…';await new Promise(r=>setTimeout(r,0));
+      FRAME=i;P=animP(fr[i]);const c=process(src,false).canvas,b=await toBlob(expCanvasFrom(c),'image/png');
+      out.push({name:'quadro_'+String(i+1).padStart(4,'0')+'.png',data:new Uint8Array(await b.arrayBuffer())})}
+    download(makeZip(out),'retroit-animacao.zip');m.textContent='ZIP com '+out.length+' quadros ('+anFps()+' fps).'
+  }catch(e){m.textContent='Falhou ao gerar a sequência.'}
+  busy=false;animShow(AN.raw)};
+// preset animado: valores do "antes" + seção anim (ver spec/Formato do preset.md)
+$('an_json').onclick=()=>{
+  anCommit();const A=AN.A,B=AN.B,ease=$('an_ease').value,tr=anTr(),tracks={},base={};
+  for(const k in DEF){const a=A[k],b=B[k];base[k]=a;
+    if(AN.keys[k]&&AN.keys[k].length){tracks[k]={mode:'keys',keys:AN.keys[k].map(q=>[+q.t.toFixed(4),+q.v.toFixed(4)])};continue}
+    if(k==='order'||k==='off'||k==='ntOn'||k==='dsOn'||k==='ntVary'||k==='ntRs'||a===b)continue;
+    const c=AN.stg[STAGE_OF[k]],rs=c&&c.mode==='random';
+    if(rs&&c.lock[k])continue;
+    const t={mode:rs?'random':'range',from:a,to:b};
+    if(typeof a!=='number')t.step=true; // valor discreto: troca quando o progresso passa de 0,5
+    if(rs){t.smooth=c.smooth;t.seed=c.seed}
+    tracks[k]=t}
+  for(const k of KEYS){if(k==='meta')continue;const x=A.off.includes(k),y=B.off.includes(k);
+    if(x!==y)tracks['off:'+k]={mode:'range',from:x?1:0,to:y?1:0,step:true}}
+  base.order=A.order.filter(k=>k!=='meta');base.off=A.off.filter(k=>k!=='meta');
+  const ob=B.order.filter(k=>k!=='meta');
+  base.anim={duration:anDur(),fps:anFps(),loop:$('an_loop').checked,transition:tr,ease,...(ease==='custom'?{points:CV.map(q=>q.map(v=>+v.toFixed(3)))}:{}),seed:42,...(ob.join()!==base.order.join()?{orderTo:ob}:{}),tracks};
+  download(new Blob([JSON.stringify({app:'retroit',version:2,presets:{'Animado':base}},null,1)],{type:'application/json'}),'retroit-animado.json');
+  $('an_msg').textContent='Preset animado exportado ('+Object.keys(tracks).length+' faixas).'};
+// GIF animado: paleta global (median cut sobre todos os quadros) + encoder LZW escrito aqui
+function lzwEncode(idx,minCode){
+  const clear=1<<minCode,eoi=clear+1,out=[];let bits=minCode+1,next=eoi+1,cur=0,nb=0;const dict=new Map();
+  const put=c=>{cur|=c<<nb;nb+=bits;while(nb>=8){out.push(cur&255);cur>>=8;nb-=8}};
+  const grow=()=>{if(next>(1<<bits)-1&&bits<12)bits++};
+  put(clear);let prefix=idx[0];
+  for(let i=1;i<idx.length;i++){
+    const k=idx[i],key=prefix*256+k,f=dict.get(key);
+    if(f!==undefined){prefix=f;continue}
+    put(prefix);grow();
+    if(next<4096){dict.set(key,next++)}
+    else{put(clear);dict.clear();next=eoi+1;bits=minCode+1}
+    prefix=k}
+  put(prefix);grow();put(eoi);if(nb>0)out.push(cur&255);
+  return out}
+function gifBytes(frames,W,H,pal,transIdx,delayCs,loop){
+  const o=[],w16=v=>o.push(v&255,v>>8&255);
+  for(const ch of 'GIF89a')o.push(ch.charCodeAt(0));
+  w16(W);w16(H);o.push(0xF7,0,0); // tabela global de 256 cores
+  for(let i=0;i<256;i++){const c=pal[i]||[0,0,0];o.push(c[0],c[1],c[2])}
+  if(loop){o.push(0x21,0xFF,11);for(const ch of 'NETSCAPE2.0')o.push(ch.charCodeAt(0));o.push(3,1,0,0,0)}
+  for(const idx of frames){
+    o.push(0x21,0xF9,4,(transIdx>=0?2<<2|1:1<<2),delayCs&255,delayCs>>8&255,transIdx>=0?transIdx:0,0);
+    o.push(0x2C);w16(0);w16(0);w16(W);w16(H);o.push(0,8);
+    const d=lzwEncode(idx,8);
+    for(let i=0;i<d.length;i+=255){const n=Math.min(255,d.length-i);o.push(n);for(let j=0;j<n;j++)o.push(d[i+j])}
+    o.push(0)}
+  o.push(0x3B);return new Uint8Array(o)}
+$('an_gif').onclick=async()=>{
+  if(busy||!src)return;anCommit();busy=true;animStop();const fr=anFrames(),m=$('an_msg'),gw=Math.min(1600,Math.max(64,Math.round(+$('an_gw').value)||480)),imgs=[];
+  try{
+    let W=0,H=0,anyT=false;
+    for(let i=0;i<fr.length;i++){
+      m.textContent='Quadro '+(i+1)+' de '+fr.length+'…';await new Promise(r=>setTimeout(r,0));
+      FRAME=i;P=animP(fr[i]);const c=process(src,false).canvas;
+      if(!W){W=Math.min(gw,c.width);H=Math.max(1,Math.round(c.height*W/c.width))}
+      const t=document.createElement('canvas');t.width=W;t.height=H;const x=t.getContext('2d',{willReadFrequently:true});x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(c,0,0,W,H);
+      const d=x.getImageData(0,0,W,H).data;for(let k=3;k<d.length;k+=4)if(d[k]<128){anyT=true;break}
+      imgs.push(d)}
+    m.textContent='Montando a paleta…';await new Promise(r=>setTimeout(r,0));
+    const nCol=anyT?255:256,smp=[],per=Math.max(1,Math.floor(W*H*imgs.length/40000));
+    let c=0;for(const d of imgs)for(let k=0;k<d.length;k+=4){if(d[k+3]>=128&&(c++%per)===0)smp.push([d[k],d[k+1],d[k+2]])}
+    const pal=(smp.length?medianCut(smp,nCol):[[0,0,0]]).map(v=>v.map(Math.round)),trans=anyT?255:-1;
+    const cache=new Int16Array(32768).fill(-1);
+    const near=(r,g,b)=>{let bi=0,bd=1e9;for(let i=0;i<pal.length;i++){const p=pal[i],dr=r-p[0],dg=g-p[1],db=b-p[2],e=dr*dr*.3+dg*dg*.59+db*db*.11;if(e<bd){bd=e;bi=i}}return bi};
+    const frames=imgs.map(d=>{const ix=new Uint8Array(W*H);
+      for(let i=0,k=0;i<ix.length;i++,k+=4){
+        if(d[k+3]<128){ix[i]=trans;continue}
+        const key=(d[k]>>3<<10)|(d[k+1]>>3<<5)|(d[k+2]>>3);let v=cache[key];
+        if(v<0){v=near((d[k]>>3<<3)+4,(d[k+1]>>3<<3)+4,(d[k+2]>>3<<3)+4);cache[key]=v}ix[i]=v}
+      return ix});
+    m.textContent='Codificando…';await new Promise(r=>setTimeout(r,0));
+    const bytes=gifBytes(frames,W,H,pal,trans,Math.max(2,Math.round(100/anFps())),$('an_loop').checked);
+    download(new Blob([bytes],{type:'image/gif'}),'retroit-animacao.gif');
+    m.textContent='GIF de '+W+'×'+H+', '+frames.length+' quadros, '+(bytes.length/1024).toFixed(0)+' KB.'
+  }catch(e){m.textContent='Falhou ao gerar o GIF.';console.error(e)}
+  busy=false;animShow(AN.raw)};
+// WebM: grava os quadros prontos num MediaRecorder, na velocidade do fps (é uma prévia; o vídeo de verdade sai do shader)
+$('an_webm').onclick=async()=>{
+  if(busy||!src)return;const m=$('an_msg');
+  const mime=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t));
+  if(!mime){m.textContent='Este navegador não grava WebM.';return}
+  anCommit();busy=true;animStop();const fr=anFrames(),gw=Math.min(1600,Math.max(64,Math.round(+$('an_gw').value)||480)),cs=[];
+  try{
+    let W=0,H=0;
+    for(let i=0;i<fr.length;i++){
+      m.textContent='Quadro '+(i+1)+' de '+fr.length+'…';await new Promise(r=>setTimeout(r,0));
+      FRAME=i;P=animP(fr[i]);const c=process(src,false).canvas;
+      if(!W){W=Math.min(gw,c.width)&~1;H=Math.max(2,Math.round(c.height*W/c.width)&~1)}
+      const t=document.createElement('canvas');t.width=W;t.height=H;const x=t.getContext('2d');x.fillStyle=E.bg.value;x.fillRect(0,0,W,H);x.imageSmoothingQuality='high';x.drawImage(c,0,0,W,H);cs.push(t)}
+    const rec=document.createElement('canvas');rec.width=W;rec.height=H;const rx=rec.getContext('2d'),stream=rec.captureStream(0),track=stream.getVideoTracks()[0];
+    const fps=anFps(),bps=Math.round(Math.min(20e6,Math.max(5e5,W*H*fps*.2)));
+    const mr=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:bps}),chunks=[];
+    mr.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};const fim=new Promise(r=>mr.onstop=r);mr.start();
+    const t0=performance.now();
+    for(let i=0;i<cs.length;i++){m.textContent='Gravando '+(i+1)+' de '+cs.length+'…';rx.drawImage(cs[i],0,0);track.requestFrame();
+      const wait=t0+(i+1)*1000/fps-performance.now();if(wait>0)await new Promise(r=>setTimeout(r,wait))}
+    mr.stop();await fim;
+    const blob=new Blob(chunks,{type:'video/webm'});download(blob,'retroit-animacao.webm');
+    m.textContent='WebM de '+W+'×'+H+', '+cs.length+' quadros a '+fps+' fps, '+(blob.size/1024).toFixed(0)+' KB.'
+  }catch(e){m.textContent='Falhou ao gravar o WebM.';console.error(e)}
+  busy=false;animShow(AN.raw)};
+// Editor de quadros-chave
+const KDEF=[];for(const [stg,,items] of SL)for(const [k,l,mn,mx,st] of items)KDEF.push({k,l:l.replace(/ \(.*$/,''),stg,mn,mx,st});
+const kp=$('an_kp');kp.innerHTML=KDEF.map(d=>`<option value="${d.k}">${STG[d.stg]?STG[d.stg].n:d.stg} · ${d.l}</option>`).join('');
+const kdef=()=>KDEF.find(d=>d.k===kp.value);
+function kfDraw(){
+  const d=kdef(),ks=AN.keys[d.k]||[],X=t=>t*300,Y=v=>(1-(v-d.mn)/(d.mx-d.mn))*100;
+  const base=[];for(let i=0;i<=30;i++){const t=i/30,a=AN.A?AN.A[d.k]:d.mn,b=AN.B?AN.B[d.k]:d.mn;base.push((i?'L':'M')+X(t)+','+Y(a+(b-a)*tOf(t)))}
+  $('an_kb').setAttribute('d',ks.length?'':base.join(' '));
+  $('an_kl').setAttribute('d',ks.length?`M0,${Y(ks[0].v)} `+ks.map(q=>`L${X(q.t)},${Y(q.v)}`).join(' ')+` L300,${Y(ks[ks.length-1].v)}`:'');
+  $('an_kc').setAttribute('x1',X(AN.raw));$('an_kc').setAttribute('x2',X(AN.raw));
+  const g=$('an_kg');g.innerHTML='';
+  ks.forEach(q=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',X(q.t));c.setAttribute('cy',Y(q.v));c.setAttribute('r',5);c.setAttribute('fill','var(--acc)');c.style.cursor='grab';c._q=q;g.appendChild(c)});
+  $('an_kinfo').textContent=ks.length?ks.length+' ponto(s); no tempo '+(AN.raw*anDur()).toFixed(2)+' s vale '+(+keyVal(ks,AN.raw).toFixed(3)):'sem pontos: a linha tracejada é a transição Antes → Depois';
+}
+let kDrag=null;
+const kPos=e=>{const d=kdef(),r=$('an_ksv').getBoundingClientRect(),k=312/r.width,x=((e.clientX-r.left)*k-6)/300,y=((e.clientY-r.top)*k-6)/100;
+  let v=d.mn+(1-Math.min(1,Math.max(0,y)))*(d.mx-d.mn);if(d.st>=1)v=Math.round(v);else v=Math.round(v/d.st)*d.st;
+  return {t:Math.min(1,Math.max(0,x)),v:Math.min(d.mx,Math.max(d.mn,v))}};
+function kApply(){anCommit();animShow(AN.raw)}
+$('an_ksv').onpointerdown=e=>{const d=kdef(),ks=AN.keys[d.k]||(AN.keys[d.k]=[]);
+  let q=e.target._q;if(!q){q=kPos(e);ks.push(q)}
+  kDrag=q;$('an_ksv').setPointerCapture(e.pointerId);ks.sort((a,b)=>a.t-b.t);kApply()};
+$('an_ksv').onpointermove=e=>{if(!kDrag)return;const d=kdef(),ks=AN.keys[d.k],p=kPos(e);kDrag.t=p.t;kDrag.v=p.v;ks.sort((a,b)=>a.t-b.t);kApply()};
+['pointerup','pointercancel'].forEach(ev=>$('an_ksv').addEventListener(ev,()=>{kDrag=null}));
+$('an_ksv').ondblclick=e=>{const q=e.target._q;if(!q)return;const d=kdef();AN.keys[d.k]=AN.keys[d.k].filter(x=>x!==q);if(!AN.keys[d.k].length)delete AN.keys[d.k];kApply()};
+$('an_kclr').onclick=()=>{delete AN.keys[kdef().k];kApply()};
+kp.onchange=kfDraw;
+// Zoom (botões, scroll) e arrastar para mover; duplo clique reseta
+let Z=1,ZX=0,ZY=0;
+function applyZoom(){if(Z<=1){ZX=ZY=0;if(Math.abs(Z-1)<.01)Z=1}stage.style.transform=Z===1?'':`translate(${ZX}px,${ZY}px) scale(${Z})`;stage.style.cursor=Z>1?'grab':''}
+function zoomBy(f){Z=Math.min(16,Math.max(.5,Z*f));applyZoom()}
+$('zin').onclick=()=>zoomBy(1.25);$('zout').onclick=()=>zoomBy(1/1.25);
+document.querySelector('.view').addEventListener('wheel',e=>{e.preventDefault();zoomBy(e.deltaY<0?1.15:1/1.15)},{passive:false});
+let pan=null;
+stage.addEventListener('pointerdown',e=>{if(Z>1){pan={x:e.clientX-ZX,y:e.clientY-ZY};stage.setPointerCapture(e.pointerId);stage.style.cursor='grabbing'}});
+stage.addEventListener('pointermove',e=>{if(pan){ZX=e.clientX-pan.x;ZY=e.clientY-pan.y;applyZoom()}});
+['pointerup','pointercancel'].forEach(ev=>stage.addEventListener(ev,()=>{pan=null;stage.style.cursor=Z>1?'grab':''}));
+stage.addEventListener('dblclick',()=>{Z=1;applyZoom()});
+P=fresh(PRE['PS1 clássico']);sync();demo();
+</script>
+</body>
+</html>
