@@ -2,6 +2,8 @@
 
 **Transforme qualquer foto ou vídeo em uma imagem de videogame antigo, fita VHS ou TV de tubo.**
 
+> **De onde veio o projeto.** O RETROit nasceu de um desafio: IAs não são boas em determinismo na hora de aplicar efeitos em imagens. Peça o mesmo efeito duas vezes e o resultado muda, e é impossível reproduzir o mesmo quadro depois ou repetir o visual em vídeo. A resposta foi tirar a decisão da IA e calcular cada efeito com uma conta fixa, em um shader: a mesma imagem com o mesmo preset dá **sempre o mesmo resultado**, até no ruído, que vem de um hash e não de sorteio.
+
 O RETROit é um app de uma página só, sem instalação e sem dependências, que aplica uma cadeia de efeitos retrô e permite animá-los no tempo. Todos os efeitos rodam em **um único shader**, o mesmo no navegador e na placa de vídeo, o que também o torna fácil de levar para outros dispositivos e engines.
 
 <p align="center">
