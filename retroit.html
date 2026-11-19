@@ -154,10 +154,12 @@ uniform float dsGlitch; uniform float dsGlitchSize; uniform float dsRgb; uniform
 uniform float halftone; uniform float angle; uniform float tonR; uniform float tonG; uniform float tonB; uniform float crt; uniform float crtMask; uniform float crtBloom; uniform float crtCorner; uniform float crtMaskW; uniform float crtMaskX; uniform float crtMaskH; uniform float crtMaskY; uniform float crtMaskYInt; uniform float crtMaskR; uniform float crtLock; uniform float crtStagger;
 uniform float scan; uniform int scanPx; /* scanPx: pixels por linha de TV (0 = automático) */ uniform float vig; uniform float noise;
 
+uniform float tpShift; uniform float tpSmear; uniform float tpGhost; uniform float tpRing; uniform float tpStreak;
+
 out vec4 o;
 
 const int S_COLOR=0, S_PIXDOWN=1, S_PIXUP=2, S_PALETTE=3, S_NTSC=4, S_DISTORT=5,
-          S_HALFTONE=6, S_SCAN=7, S_VIG=8, S_NOISE=9, S_CRT=10;
+          S_HALFTONE=6, S_SCAN=7, S_VIG=8, S_NOISE=9, S_CRT=10, S_TAPE=11;
 const float PI=3.14159265358979;
 
 const int B4[16]=int[16](0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5);
@@ -468,6 +470,26 @@ vec4 stCrt(ivec2 p){
   rgb*=m*(1.+crt*crtMask*.5);
   return vec4(clamp(rgb,0.,1.),1.);}
 
+
+// Fita magnetica: croma deslocado em sentidos opostos e borrado na horizontal, eco da luminancia, halo nas bordas e riscos de cor.
+// Espelha tapeData() do retroit.html (mesma ordem de clamp e mesmo hash por linha/quadro).
+vec3 ycc(vec3 c){c*=255.;return vec3(.299*c.r+.587*c.g+.114*c.b,128.-.168736*c.r-.331264*c.g+.5*c.b,128.+.5*c.r-.418688*c.g-.081312*c.b);}
+vec4 stTape(ivec2 p){
+  int W=isz().x,sh=int(floor(tpShift+.5)),sm=max(1,int(floor(tpSmear+.5))),gd=max(1,int(floor(tpShift*1.2+.5)));
+  vec4 c0=F(p);
+  float a=0.,b=0.,y2=0.;
+  int ha=sm/2,hb=(sm+2)/2;
+  for(int k=0;k<sm;k++){int xi=clamp(p.x+k-ha,0,W-1);a+=ycc(F(ivec2(clamp(xi+sh,0,W-1),p.y)).rgb).y;}
+  for(int k=0;k<sm+2;k++){int xi=clamp(p.x+k-hb,0,W-1);b+=ycc(F(ivec2(clamp(xi-sh-1,0,W-1),p.y)).rgb).z;}
+  for(int k=0;k<5;k++)y2+=ycc(F(ivec2(clamp(p.x+k-2,0,W-1),p.y)).rgb).x;
+  a/=float(sm);b/=float(sm+2);y2/=5.;
+  float Y=ycc(c0.rgb).x,Ye=ycc(F(ivec2(clamp(p.x-gd,0,W-1),p.y)).rgb).x;
+  float yv=Y+tpGhost*(Ye-Y)+tpRing*(Y-y2),u=a-128.,v=b-128.;
+  if(tpStreak>0.&&rnd(p.y,7,u_frame)<.06*tpStreak){
+    int x0=int(floor(rnd(p.y,8,u_frame)*float(max(1,W-60)))),n=20+int(floor(rnd(p.y,9,u_frame)*40.));
+    if(p.x>=x0&&p.x<x0+n){u+=(rnd(p.y,10,u_frame)-.5)*50.;v+=(rnd(p.y,11,u_frame)-.5)*50.;}}
+  return vec4(clamp(vec3(yv+1.402*v,yv-.344136*u-.714136*v,yv+1.772*u)/255.,0.,1.),c0.a);}
+
 void main(){
   ivec2 p=ivec2(gl_FragCoord.xy);   // linha 0 = primeira linha do quadro (sem inverter)
   vec4 c=vec4(0);
@@ -476,6 +498,7 @@ void main(){
   if(u_stage==S_NTSC)    {o=stNtsc(p);return;}
   if(u_stage==S_DISTORT) {o=stDistort(p);return;}
   if(u_stage==S_CRT)     {o=stCrt(p);return;}
+  if(u_stage==S_TAPE)    {o=stTape(p);return;}
   c=F(p);
   if(u_stage==S_COLOR)         o=stColor(c);
   else if(u_stage==S_PALETTE)  o=stPalette(p,c);
@@ -486,7 +509,7 @@ void main(){
   else o=c;}
 </script>
 <script>
-const DEF={pixel:4,down:'box',bits:5,dither:'bayer4',ditherAmt:1,gamma:1,lift:0,sat:1,contrast:1,tonR:1,tonG:1,tonB:1,halftone:0,dot:8,angle:45,scan:0,scanPx:0,crt:0,crtMask:.5,crtBloom:.4,crtCorner:.05,crtMaskW:3,crtMaskX:0,crtMaskH:0,crtMaskY:1,crtMaskYInt:.5,crtMaskR:1,crtLock:0,crtStagger:0,fpOn:0,fpLines:240,fpBlock:6,vig:0,noise:0,soft:0,alpha:'hard',palette:'snes',palColors:16,palDither:.5,ntOn:0,ntChroma:6,ntDelay:2,ntRing:.3,ntSmear:1,ntNoise:.08,ntGrain:2,ntCNoise:.04,ntSnow:.004,ntWave:3,ntVary:0,ntRs:0,ntPhase:0,ntHeadH:0,ntHeadShift:6,ntChromaV:0,ntInterlace:0,ntBand:0,ntLumaV:0,ntTrackH:0,ntTrackSnow:0,ntEdge:0,ntFieldNoise:0,ntBurst:0,ntChromaGain:1,dsOn:0,dsBarrel:0,dsZoom:1,dsWaveX:0,dsWaveY:0,dsWaveFreq:4,dsGlitch:0,dsGlitchSize:12,dsRgb:0,dsJitter:0,dsPhase:0,order:['color','pixel','palette','ntsc','distort','halftone','scan','vig','noise'],off:[]};
+const DEF={pixel:4,down:'box',bits:5,dither:'bayer4',ditherAmt:1,gamma:1,lift:0,sat:1,contrast:1,tonR:1,tonG:1,tonB:1,halftone:0,dot:8,angle:45,scan:0,scanPx:0,crt:0,crtMask:.5,crtBloom:.4,crtCorner:.05,crtMaskW:3,crtMaskX:0,crtMaskH:0,crtMaskY:1,crtMaskYInt:.5,crtMaskR:1,crtLock:0,crtStagger:0,fpOn:0,fpLines:240,fpBlock:6,vig:0,noise:0,soft:0,alpha:'hard',palette:'snes',palColors:16,palDither:.5,ntOn:0,ntChroma:6,ntDelay:2,ntRing:.3,ntSmear:1,ntNoise:.08,ntGrain:2,ntCNoise:.04,ntSnow:.004,ntWave:3,ntVary:0,ntRs:0,ntPhase:0,ntHeadH:0,ntHeadShift:6,ntChromaV:0,ntInterlace:0,ntBand:0,ntLumaV:0,ntTrackH:0,ntTrackSnow:0,ntEdge:0,ntFieldNoise:0,ntBurst:0,ntChromaGain:1,dsOn:0,dsBarrel:0,dsZoom:1,dsWaveX:0,dsWaveY:0,dsWaveFreq:4,dsGlitch:0,dsGlitchSize:12,dsRgb:0,dsJitter:0,dsPhase:0,tpOn:0,tpShift:5,tpSmear:7,tpGhost:.16,tpRing:.35,tpStreak:.5,jpOn:0,jpQ:35,jpPass:2,jpSub:2,jpSharp:0,order:['color','pixel','palette','ntsc','distort','halftone','scan','vig','noise'],off:[]};
 // Paletas
 const hex=a=>a.map(h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)));
 const PALS={
@@ -558,6 +581,8 @@ const SL=[
  ['vig','Vinheta',[['vig','Força',0,.8,.02]]],
  ['crt','CRT',[['fpOn','Fósforo perfect (só na GPU): entrada em linhas fixas × bloco',0,1,1],['fpLines','Linhas de origem (ex.: 240)',60,720,1],['fpBlock','Bloco: pixels de saída por pixel da imagem (múltiplo de 3)',3,12,1],['crt','Força geral',0,1,.05],['crtBloom','Brilho (bloom)',0,1,.05],['crtCorner','Cantos da tela (arredondados)',0,.2,.01],['crtMask','Máscara de fósforo',0,1,.05],['crtMaskW','Largura horizontal da coluna (px)',1,12,1],['crtMaskX','Separação horizontal entre células (px)',0,4,1],['crtMaskH','Altura da fileira (px, 0 = sem estrutura vertical)',0,12,1],['crtMaskY','Espaçamento vertical entre fileiras (px)',0,12,1],['crtMaskYInt','Intensidade do espaçamento vertical',0,1,.05],['crtMaskR','Cantos de cada célula: raio (px)',0,3,1],['crtLock','Prender ao pixel (cada bloco = 3 colunas)',0,1,1],['crtStagger','Fileiras alternadas deslocadas (máscara de pontos)',0,1,1]]],
  ['noise','Ruído branco',[['noise','Força',0,.2,.005]]],
+ ['tape','Fita magnética (só no navegador)',[['tpShift','Deslocamento do croma (px)',0,12,1],['tpSmear','Borrão do croma (px)',1,16,1],['tpGhost','Eco da luminância',0,.5,.01],['tpRing','Halo nas bordas',0,1,.05],['tpStreak','Riscos de cor',0,1,.05]]],
+ ['jpeg','Recompressão JPEG (só no navegador)',[['jpQ','Qualidade (menor = mais blocos)',3,100,1],['jpPass','Gerações (recompressões)',1,6,1],['jpSub','Bloco de croma (1 = sem, 2 = 4:2:0)',1,4,1],['jpSharp','Nitidez excessiva (antes)',0,1,.05]]],
  ['meta','Remover metadados (fixo no fim)',[]]
 ];
 const PRE={
@@ -595,9 +620,10 @@ const PRE={
  'PICO-8':{pixel:4,down:'nearest',bits:8,dither:'none',palette:'pico8',palDither:.5,contrast:1.1},
  'VHS ntsc-rs (suave)':{pixel:1,bits:8,dither:'none',ntOn:1,ntRs:1,ntVary:1,ntChroma:12,ntDelay:11,ntSmear:2,ntRing:0,ntBand:.12,ntLumaV:1,ntChromaV:4,ntNoise:.045,ntGrain:3,ntCNoise:.005,ntPhase:.29,ntChromaGain:.96,ntSnow:.004,ntWave:2,ntHeadH:8,ntHeadShift:6,ntTrackH:14,ntTrackSnow:.18,ntEdge:1,ntFieldNoise:.175,ntBurst:.03},
  'Analog horror ntsc-rs':{pixel:1,bits:8,dither:'none',ntOn:1,ntRs:1,ntVary:1,ntChroma:12,ntDelay:11,ntSmear:2,ntRing:0,ntBand:.12,ntLumaV:1,ntChromaV:4,ntNoise:.045,ntGrain:3,ntCNoise:.005,ntPhase:.29,ntChromaGain:.96,ntSnow:.004,ntWave:2,ntHeadH:8,ntHeadShift:6,ntTrackH:14,ntTrackSnow:.18,ntEdge:1,ntFieldNoise:.175,ntBurst:.03,scan:.2,off:['palette','distort','halftone','vig','noise','pixel']},
+ 'Print repassado':{pixel:1,bits:8,dither:'none',sat:1.5,contrast:1.25,tonR:1.08,tonB:.9,vig:.3,ntOn:1,ntChroma:7,ntDelay:3,ntRing:.3,ntSmear:1,ntNoise:0,ntGrain:1,ntCNoise:.02,ntSnow:0,ntWave:0,dsOn:1,dsRgb:2,tpOn:1,tpShift:5,tpSmear:7,tpGhost:.16,tpRing:.35,tpStreak:.5,jpOn:1,jpQ:22,jpPass:3,jpSub:2,jpSharp:.6,off:['palette','halftone','scan','noise']},
  'Sutil':{pixel:2,bits:6,dither:'bayer4',ditherAmt:.6,lift:.02,scan:.04,vig:.15}
 };
-const KEYS=['color','pixel','palette','ntsc','distort','halftone','scan','vig','noise','crt','meta'];
+const KEYS=['color','pixel','palette','ntsc','distort','halftone','scan','vig','noise','crt','tape','jpeg','meta'];
 const ZERO=['halftone','scan','vig','noise','crt'];
 // Perfis antigos (predefinições, JSON importado, salvos no navegador): tint, sepia e poster saíram da interface; viram ganhos RGB e saturação, aproximados
 function legacyColor(o){
@@ -612,7 +638,7 @@ function fresh(o){
   const p={...DEF,...(o||{})};
   const ord=(p.order||[]).filter(k=>KEYS.includes(k));KEYS.forEach(k=>{if(!ord.includes(k))ord.push(k)});p.order=ord.filter(k=>k!=='meta').concat('meta');
   if(o&&Array.isArray(o.off))p.off=o.off.filter(k=>KEYS.includes(k));
-  else{p.off=[];if(!(o&&o.palette))p.off.push('palette');if(!(o&&o.ntOn))p.off.push('ntsc');if(!(o&&o.dsOn))p.off.push('distort')}
+  else{p.off=[];if(!(o&&o.palette))p.off.push('palette');if(!(o&&o.ntOn))p.off.push('ntsc');if(!(o&&o.dsOn))p.off.push('distort');if(!(o&&o.tpOn))p.off.push('tape');if(!(o&&o.jpOn))p.off.push('jpeg')}
   for(const k of ZERO)if(!(p[k]>0)&&!p.off.includes(k))p.off.push(k);
   if(!PALS[p.palette]){p.palette='snes';if(!p.off.includes('palette'))p.off.push('palette')}
   return p}
@@ -1210,6 +1236,55 @@ function stCrt(c){
       d[j+ch2]=Math.max(0,Math.min(255,Math.round(r*255)))}
   }
   x.putImageData(o,0,0);return c}
+
+// Recompressão JPEG simulada (DCT 8x8 + quantização + croma em blocos), em JS puro e síncrona. Só na CPU/navegador: não existe no shader do vídeo.
+const JQY=[16,11,10,16,24,40,51,61,12,12,14,19,26,58,60,55,14,13,16,24,40,57,69,56,14,17,22,29,51,87,80,62,18,22,37,56,68,109,103,77,24,35,55,64,81,104,113,92,49,64,78,87,103,121,120,101,72,92,95,98,112,100,103,99];
+const JQC=[17,18,24,47,99,99,99,99,18,21,26,66,99,99,99,99,24,26,56,99,99,99,99,99,47,66,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99];
+const JCOS=(()=>{const m=new Float32Array(64);for(let u=0;u<8;u++)for(let x=0;x<8;x++)m[u*8+x]=(u?.5:Math.SQRT1_2*.5)*Math.cos((2*x+1)*u*Math.PI/16);return m})();
+function jqTable(base,q){const s=q<50?5000/q:200-2*q;return base.map(v=>Math.max(1,Math.min(255,Math.floor((v*s+50)/100))))}
+function jpegPlane(pl,w,h,tb,ox,oy){
+  const f=new Float32Array(64),t=new Float32Array(64);
+  for(let by=-oy;by<h;by+=8)for(let bx=-ox;bx<w;bx+=8){
+    for(let y=0;y<8;y++){const yy=Math.min(h-1,Math.max(0,by+y));for(let x=0;x<8;x++){const xx=Math.min(w-1,Math.max(0,bx+x));f[y*8+x]=pl[yy*w+xx]-128}}
+    for(let y=0;y<8;y++)for(let u=0;u<8;u++){let a=0;for(let x=0;x<8;x++)a+=f[y*8+x]*JCOS[u*8+x];t[y*8+u]=a}
+    for(let u=0;u<8;u++)for(let v=0;v<8;v++){let a=0;for(let y=0;y<8;y++)a+=t[y*8+u]*JCOS[v*8+y];const q=tb[v*8+u];f[v*8+u]=Math.round(a/q)*q}
+    for(let v=0;v<8;v++)for(let x=0;x<8;x++){let a=0;for(let u=0;u<8;u++)a+=f[v*8+u]*JCOS[u*8+x];t[v*8+x]=a}
+    for(let y=0;y<8;y++){const yy=by+y;if(yy<0||yy>=h)continue;for(let x=0;x<8;x++){const xx=bx+x;if(xx<0||xx>=w)continue;let a=0;for(let v=0;v<8;v++)a+=t[v*8+x]*JCOS[v*8+y];pl[yy*w+xx]=a+128}}}}
+function jpegData(d,W,H,q,passes,sub,sharp){
+  const n=W*H;
+  if(sharp>0){const c=new Uint8ClampedArray(d);
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4;for(let k=0;k<3;k++){let a=0;for(let dy=-1;dy<=1;dy++){const yy=Math.min(H-1,Math.max(0,y+dy));for(let dx=-1;dx<=1;dx++)a+=c[(yy*W+Math.min(W-1,Math.max(0,x+dx)))*4+k]}d[i+k]=c[i+k]+sharp*2*(c[i+k]-a/9)}}}
+  const tY=jqTable(JQY,q),tC=jqTable(JQC,q),s=Math.max(1,Math.round(sub)),cw=Math.ceil(W/s),ch=Math.ceil(H/s);
+  const Y=new Float32Array(n),Cb=new Float32Array(cw*ch),Cr=new Float32Array(cw*ch),cb0=new Float32Array(n),cr0=new Float32Array(n);
+  for(let p=0;p<passes;p++){
+    for(let i=0;i<n;i++){const r=d[i*4],g=d[i*4+1],b=d[i*4+2];Y[i]=.299*r+.587*g+.114*b;cb0[i]=128-.168736*r-.331264*g+.5*b;cr0[i]=128+.5*r-.418688*g-.081312*b}
+    for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){let a=0,c2=0,m=0;for(let dy=0;dy<s;dy++){const yy=y*s+dy;if(yy>=H)break;for(let dx=0;dx<s;dx++){const xx=x*s+dx;if(xx>=W)break;a+=cb0[yy*W+xx];c2+=cr0[yy*W+xx];m++}}Cb[y*cw+x]=a/m;Cr[y*cw+x]=c2/m}
+    const ox=p?(p*3)%8:0,oy=p?(p*5)%8:0;
+    jpegPlane(Y,W,H,tY,ox,oy);jpegPlane(Cb,cw,ch,tC,ox%8,oy%8);jpegPlane(Cr,cw,ch,tC,ox%8,oy%8);
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x,cb=Cb[((y/s)|0)*cw+((x/s)|0)]-128,cr=Cr[((y/s)|0)*cw+((x/s)|0)]-128,yv=Y[i];
+      d[i*4]=Math.round(yv+1.402*cr);d[i*4+1]=Math.round(yv-.344136*cb-.714136*cr);d[i*4+2]=Math.round(yv+1.772*cb)}}
+  return d}
+function stJpeg(c){const [x,id]=dat(c);jpegData(id.data,c.width,c.height,P.jpQ,P.jpPass,P.jpSub,P.jpSharp);x.putImageData(id,0,0);return c}
+
+// Fita magnética: croma deslocado em sentidos opostos e borrado na horizontal, eco da luminância, halo nas bordas e riscos de cor. Só no navegador (não está no shader do vídeo).
+function tapeData(d,W,H,shift,smear,ghost,ring,streak){
+  const Y=new Float32Array(W),Cb=new Float32Array(W),Cr=new Float32Array(W),Y2=new Float32Array(W),A=new Float32Array(W),B=new Float32Array(W),sh=Math.round(shift),sm=Math.max(1,Math.round(smear)),gd=Math.max(1,Math.round(shift*1.2));
+  const box=(src,dst,n)=>{const h0=n>>1;for(let x=0;x<W;x++){let a=0;for(let k=0;k<n;k++)a+=src[Math.min(W-1,Math.max(0,x+k-h0))];dst[x]=a/n}};
+  const E=(a,x)=>a[Math.min(W-1,Math.max(0,x))];
+  for(let y=0;y<H;y++){
+    const o=y*W*4;
+    for(let x=0;x<W;x++){const i=o+x*4,r=d[i],g=d[i+1],b=d[i+2];Y[x]=.299*r+.587*g+.114*b;Cb[x]=128-.168736*r-.331264*g+.5*b;Cr[x]=128+.5*r-.418688*g-.081312*b}
+    const cb=new Float32Array(W),cr=new Float32Array(W);
+    for(let x=0;x<W;x++){cb[x]=E(Cb,x+sh);cr[x]=E(Cr,x-sh-1)}
+    box(cb,A,sm);box(cr,B,sm+2);box(Y,Y2,5);
+    const hit=streak>0&&hrnd(y,7,FRAME)<.06*streak;let x0=0,n=0,dc=0,dv=0;
+    if(hit){x0=Math.floor(hrnd(y,8,FRAME)*Math.max(1,W-60));n=20+Math.floor(hrnd(y,9,FRAME)*40);dc=(hrnd(y,10,FRAME)-.5)*50;dv=(hrnd(y,11,FRAME)-.5)*50}
+    for(let x=0;x<W;x++){
+      let yv=Y[x]+ghost*(E(Y,x-gd)-Y[x])+ring*(Y[x]-Y2[x]),u=A[x]-128,v=B[x]-128;
+      if(hit&&x>=x0&&x<x0+n){u+=dc;v+=dv}
+      const i=o+x*4;d[i]=Math.round(yv+1.402*v);d[i+1]=Math.round(yv-.344136*u-.714136*v);d[i+2]=Math.round(yv+1.772*u)}}
+  return d}
+function stTape(c){const [x,id]=dat(c);tapeData(id.data,c.width,c.height,P.tpShift,P.tpSmear,P.tpGhost,P.tpRing,P.tpStreak);x.putImageData(id,0,0);return c}
 const STG={
  color:{n:'Cor',d:()=>'gama · sat · contraste · tom',fn:stColor},
  pixel:{n:'Pixel + cor reduzida',d:()=>`${P.pixel}px · ${P.bits} bits · ${P.dither}`,fn:stPixel},
@@ -1221,6 +1296,8 @@ const STG={
  vig:{n:'Vinheta',d:()=>`força ${P.vig}`,fn:stVig},
  noise:{n:'Ruído branco',d:()=>`força ${P.noise}`,fn:stNoise},
  crt:{n:'CRT',d:()=>`força ${P.crt} · máscara ${P.crtMask}`,fn:stCrt},
+ tape:{n:'Fita magnética',d:()=>`croma ${P.tpShift}px · eco ${P.tpGhost}`,fn:stTape},
+ jpeg:{n:'Recompressão JPEG',d:()=>`q ${P.jpQ} · ${P.jpPass}× · croma ${P.jpSub}px`,fn:stJpeg},
  meta:{n:'Remover metadados',d:()=>'EXIF · GPS · ICC · texto',fn:c=>c}
 };
 // Arrastar reordena; soltar na linha de cima desativa a etapa, na de baixo ativa
@@ -1291,7 +1368,7 @@ function glRun(src,dst,stage,size){
   const gl=GL.gl;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,src.t);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,GL.pal.t);
   glU('u_stage',stage);gl.uniform2i(GL.u.u_out.loc,size[0],size[1]);
   gl.bindFramebuffer(gl.FRAMEBUFFER,dst.f);gl.viewport(0,0,size[0],size[1]);gl.drawArrays(gl.TRIANGLES,0,3)}
-const GLSTAGE={color:0,palette:3,ntsc:4,distort:5,halftone:6,scan:7,vig:8,noise:9,crt:10};
+const GLSTAGE={color:0,palette:3,ntsc:4,distort:5,halftone:6,scan:7,vig:8,noise:9,crt:10,tape:11};
 function glSetPalette(pal){
   const gl=GL.gl,a=new Uint8Array(256*4);for(let i=0;i<256;i++)a[i*4+3]=255;
   pal.slice(0,256).forEach((c,i)=>{a[i*4]=c[0];a[i*4+1]=c[1];a[i*4+2]=c[2]});
@@ -1331,6 +1408,7 @@ function processGL(img){
       glRun(cur,S,1,[sw,sh]);glRun(S,oth,2,[W,H]);flip();continue}
     if(k==='palette'&&!pd.list){ // paleta adaptativa: median cut (a mesma função da CPU) sobre o resultado das etapas anteriores
       const d=new Uint8Array(W*H*4);gl.bindFramebuffer(gl.FRAMEBUFFER,cur.f);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,d);glSetPalette(paletteFor(d))}
+    if(k==='jpeg'){const jd=new Uint8ClampedArray(W*H*4);gl.bindFramebuffer(gl.FRAMEBUFFER,cur.f);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,jd);jpegData(jd,W,H,P.jpQ,P.jpPass,P.jpSub,P.jpSharp);gl.bindTexture(gl.TEXTURE_2D,cur.t);gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,jd);continue}
     glRun(cur,oth,GLSTAGE[k],[W,H]);flip()}
   const d=new Uint8ClampedArray(W*H*4);gl.bindFramebuffer(gl.FRAMEBUFFER,cur.f);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,d);
   const c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').putImageData(new ImageData(d,W,H),0,0);

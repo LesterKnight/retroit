@@ -19,17 +19,19 @@ DEF = dict(pixel=4, down='box', bits=5, dither='bayer4', ditherAmt=1, gamma=1, l
            tonR=1, tonG=1, tonB=1, halftone=0, dot=8, angle=45, scan=0, scanPx=0, crt=0, crtMask=.5, crtBloom=.4, crtCorner=.05, crtMaskW=3, crtMaskX=0, crtMaskH=0, crtMaskY=1, crtMaskYInt=.5, crtMaskR=1, crtLock=0, crtStagger=0, fpOn=0, fpLines=240, fpBlock=6, vig=0, noise=0, soft=0, alpha='hard',
            palette='snes', palColors=16, palDither=.5, ntOn=0, ntChroma=6, ntDelay=2, ntRing=.3, ntSmear=1,
            ntNoise=.08, ntGrain=2, ntCNoise=.04, ntSnow=.004, ntWave=3, ntVary=0, ntRs=0, ntPhase=0, ntHeadH=0, ntHeadShift=6, ntChromaV=0, ntInterlace=0, ntBand=0, ntLumaV=0, ntTrackH=0, ntTrackSnow=0, ntEdge=0, ntFieldNoise=0, ntBurst=0, ntChromaGain=1, dsOn=0, dsBarrel=0, dsZoom=1, dsWaveX=0,
-           dsWaveY=0, dsWaveFreq=4, dsGlitch=0, dsGlitchSize=12, dsRgb=0, dsJitter=0, dsPhase=0)
-KEYS = ['color', 'pixel', 'palette', 'ntsc', 'distort', 'halftone', 'scan', 'vig', 'noise', 'crt', 'meta']
+           dsWaveY=0, dsWaveFreq=4, dsGlitch=0, dsGlitchSize=12, dsRgb=0, dsJitter=0, dsPhase=0,
+           tpOn=0, tpShift=5, tpSmear=7, tpGhost=.16, tpRing=.35, tpStreak=.5, jpOn=0, jpQ=35, jpPass=2, jpSub=2, jpSharp=0)
+KEYS = ['color', 'pixel', 'palette', 'ntsc', 'distort', 'halftone', 'scan', 'vig', 'noise', 'crt', 'tape', 'jpeg', 'meta']
 ZERO = ['halftone', 'scan', 'vig', 'noise', 'crt']
-RANGES = dict(pixel=(1, 16), bits=(1, 8), ditherAmt=(0, 1), soft=(0, 1), gamma=(.5, 2), lift=(0, .25), sat=(0, 2),
+RANGES = dict(tpShift=(0, 12), tpSmear=(1, 16), tpGhost=(0, .5), tpRing=(0, 1), tpStreak=(0, 1), jpQ=(3, 100), jpPass=(1, 6), jpSub=(1, 4), jpSharp=(0, 1),
+              pixel=(1, 16), bits=(1, 8), ditherAmt=(0, 1), soft=(0, 1), gamma=(.5, 2), lift=(0, .25), sat=(0, 2),
               contrast=(.5, 1.8), palColors=(2, 256), palDither=(0, 1),
               ntChroma=(0, 24), ntDelay=(0, 12), ntRing=(0, 1), ntSmear=(0, 6), ntNoise=(0, .3), ntGrain=(1, 6),
               ntCNoise=(0, .3), ntSnow=(0, .05), ntWave=(0, 12), ntPhase=(0, .6), ntHeadH=(0, 24), ntHeadShift=(0, 40), ntChromaV=(0, 12), ntInterlace=(0, 1), ntBand=(0, .5), ntLumaV=(0, 2), ntTrackH=(0, 40), ntTrackSnow=(0, 1), ntEdge=(0, 1), ntFieldNoise=(0, .5), ntBurst=(0, 1), ntChromaGain=(.5, 1.5), dsBarrel=(-.3, .3), dsZoom=(.8, 1.5),
               dsWaveX=(0, 40), dsWaveY=(0, 40), dsWaveFreq=(1, 40), dsGlitch=(0, 1), dsGlitchSize=(2, 80),
               dsRgb=(0, 20), dsJitter=(0, 12), dsPhase=(0, 1), halftone=(0, 1), dot=(3, 24), angle=(0, 90), scan=(0, .5), scanPx=(0, 16), crt=(0, 1), tonR=(0, 2), tonG=(0, 2), tonB=(0, 2), crtMask=(0, 1), crtBloom=(0, 1), crtCorner=(0, .2), crtMaskW=(1, 12), crtMaskX=(0, 4), crtMaskH=(0, 12), crtMaskY=(0, 12), crtMaskYInt=(0, 1), crtMaskR=(0, 3), crtLock=(0, 1), crtStagger=(0, 1), fpOn=(0, 1), fpLines=(60, 720), fpBlock=(3, 12),
               vig=(0, .8), noise=(0, .2))
-INTS = ['ntVary', 'ntTrackH', 'ntLumaV', 'ntChromaV', 'ntRs', 'ntHeadH', 'ntHeadShift', 'pixel', 'scanPx', 'bits', 'palColors', 'ntChroma', 'ntDelay', 'ntSmear', 'ntGrain', 'ntWave']
+INTS = ['jpQ', 'jpPass', 'jpSub', 'ntVary', 'ntTrackH', 'ntLumaV', 'ntChromaV', 'ntRs', 'ntHeadH', 'ntHeadShift', 'pixel', 'scanPx', 'bits', 'palColors', 'ntChroma', 'ntDelay', 'ntSmear', 'ntGrain', 'ntWave']
 PALS = json.load(open(os.path.join(HERE, 'palettes.json'), encoding='utf-8'))
 
 
@@ -104,6 +106,8 @@ def fresh(o):
         if 'palette' not in o: off.append('palette')
         if not o.get('ntOn'): off.append('ntsc')
         if not o.get('dsOn'): off.append('distort')
+        if not o.get('tpOn'): off.append('tape')
+        if not o.get('jpOn'): off.append('jpeg')
     for k in ZERO:
         if not p[k] > 0 and k not in off:
             off.append(k)
@@ -286,8 +290,63 @@ class Anim:
 
 
 # ---------- GPU ----------
-S = dict(color=0, pixdown=1, pixup=2, palette=3, ntsc=4, distort=5, halftone=6, scan=7, vig=8, noise=9, crt=10)
+S = dict(color=0, pixdown=1, pixup=2, palette=3, ntsc=4, distort=5, halftone=6, scan=7, vig=8, noise=9, crt=10, tape=11)
 VS = '#version 330\nvoid main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.-1.,0.,1.);}'
+
+
+
+# ---------- Recompressao JPEG (so aqui, em numpy; nao existe no .frag): espelha jpegData() do retroit.html ----------
+JQY = np.array([16,11,10,16,24,40,51,61,12,12,14,19,26,58,60,55,14,13,16,24,40,57,69,56,14,17,22,29,51,87,80,62,18,22,37,56,68,109,103,77,24,35,55,64,81,104,113,92,49,64,78,87,103,121,120,101,72,92,95,98,112,100,103,99], np.float32).reshape(8, 8)
+JQC = np.full((8, 8), 99, np.float32)
+JQC[:4, :4] = [[17,18,24,47],[18,21,26,66],[24,26,56,99],[47,66,99,99]]
+JCOS = np.array([[(0.5 / math.sqrt(2) if u == 0 else 0.5) * math.cos((2 * x + 1) * u * math.pi / 16) for x in range(8)] for u in range(8)], np.float32)
+
+
+def jq_table(base, q):
+    sc = 5000 / q if q < 50 else 200 - 2 * q
+    return np.clip(np.floor((base * sc + 50) / 100), 1, 255).astype(np.float32)
+
+
+def jpeg_plane(pl, tb, ox, oy):
+    h, w = pl.shape
+    nby, nbx = -(-(h + oy) // 8), -(-(w + ox) // 8)
+    pad = np.pad(pl, ((oy, nby * 8 - h - oy), (ox, nbx * 8 - w - ox)), mode='edge') - 128
+    b = pad.reshape(nby, 8, nbx, 8).transpose(0, 2, 1, 3)
+    f = np.einsum('ux,ijxy,vy->ijuv', JCOS, b, JCOS)
+    f = np.floor(f / tb + .5) * tb
+    r = np.einsum('ux,ijuv,vy->ijxy', JCOS, f, JCOS)
+    out = r.transpose(0, 2, 1, 3).reshape(nby * 8, nbx * 8) + 128
+    return out[oy:oy + h, ox:ox + w]
+
+
+def jpeg_np(rgba, q, passes, sub, sharp):
+    d = rgba.astype(np.float32)
+    H, W = d.shape[:2]
+    if sharp > 0:
+        c = d[..., :3].copy(); pd = np.pad(c, ((1, 1), (1, 1), (0, 0)), mode='edge')
+        blur = sum(pd[dy:dy + H, dx:dx + W] for dy in range(3) for dx in range(3)) / 9
+        d[..., :3] = np.round(np.clip(c + sharp * 2 * (c - blur), 0, 255))
+    tY, tC = jq_table(JQY, q), jq_table(JQC, q)
+    s = max(1, int(round(sub)))
+    for p in range(int(passes)):
+        r, g, b = d[..., 0], d[..., 1], d[..., 2]
+        Y = .299 * r + .587 * g + .114 * b
+        cb = 128 - .168736 * r - .331264 * g + .5 * b
+        cr = 128 + .5 * r - .418688 * g - .081312 * b
+        ch, cw = -(-H // s), -(-W // s)
+        if s > 1:
+            def down(c):
+                pd = np.pad(c, ((0, ch * s - H), (0, cw * s - W)), mode='edge')
+                return pd.reshape(ch, s, cw, s).mean(axis=(1, 3))
+            cb, cr = down(cb), down(cr)
+        ox, oy = ((p * 3) % 8, (p * 5) % 8) if p else (0, 0)
+        Y = jpeg_plane(Y, tY, ox, oy); cb = jpeg_plane(cb, tC, ox, oy); cr = jpeg_plane(cr, tC, ox, oy)
+        if s > 1:
+            cb = np.repeat(np.repeat(cb, s, 0), s, 1)[:H, :W]; cr = np.repeat(np.repeat(cr, s, 0), s, 1)[:H, :W]
+        cb -= 128; cr -= 128
+        d[..., 0] = np.round(Y + 1.402 * cr); d[..., 1] = np.round(Y - .344136 * cb - .714136 * cr); d[..., 2] = np.round(Y + 1.772 * cb)
+        d[..., :3] = np.clip(d[..., :3], 0, 255)
+    return d.astype(np.uint8)
 
 
 class Renderer:
@@ -329,6 +388,13 @@ class Renderer:
         self.pal.write(a.tobytes())
         self.pal_ready = True
 
+    def cpu_jpeg(self, cur):
+        """Etapa JPEG: le a textura, roda em numpy e devolve para a textura (nao existe no .frag)."""
+        p = self.p
+        px = np.frombuffer(self.tex[cur].read(), np.uint8).reshape(self.H, self.W, 4)
+        self.tex[cur].write(np.ascontiguousarray(jpeg_np(px, p['jpQ'], p['jpPass'], p['jpSub'], p['jpSharp'])).tobytes())
+        return cur
+
     def u(self, name, v):
         if name in self.prog: self.prog[name].value = v
 
@@ -366,6 +432,8 @@ class Renderer:
         for k in p['order']:
             if k == 'palette': break
             if k == 'meta' or k in p['off']: continue
+            if k == 'jpeg':
+                cur = self.cpu_jpeg(cur); continue
             if k == 'pixel':
                 self.run(self.tex[cur], sfbo, (sw, sh), S['pixdown']); nxt = 1 - cur
                 self.run(small, self.fbo[nxt], (self.W, self.H), S['pixup']); cur = nxt
@@ -405,6 +473,8 @@ class Renderer:
                 nxt = 1 - cur
                 self.run(small, self.fbo[nxt], (self.W, self.H), S['pixup']); cur = nxt
                 continue
+            if k == 'jpeg':
+                cur = self.cpu_jpeg(cur); continue
             if k == 'palette' and not self.pal_ready:
                 # paleta adaptativa: median cut sobre o resultado das etapas anteriores
                 px = np.frombuffer(self.tex[cur].read(), np.uint8).reshape(-1, 4)

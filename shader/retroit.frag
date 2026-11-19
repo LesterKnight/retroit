@@ -32,10 +32,12 @@ uniform float dsGlitch; uniform float dsGlitchSize; uniform float dsRgb; uniform
 uniform float halftone; uniform float angle; uniform float tonR; uniform float tonG; uniform float tonB; uniform float crt; uniform float crtMask; uniform float crtBloom; uniform float crtCorner; uniform float crtMaskW; uniform float crtMaskX; uniform float crtMaskH; uniform float crtMaskY; uniform float crtMaskYInt; uniform float crtMaskR; uniform float crtLock; uniform float crtStagger;
 uniform float scan; uniform int scanPx; /* scanPx: pixels por linha de TV (0 = automático) */ uniform float vig; uniform float noise;
 
+uniform float tpShift; uniform float tpSmear; uniform float tpGhost; uniform float tpRing; uniform float tpStreak;
+
 out vec4 o;
 
 const int S_COLOR=0, S_PIXDOWN=1, S_PIXUP=2, S_PALETTE=3, S_NTSC=4, S_DISTORT=5,
-          S_HALFTONE=6, S_SCAN=7, S_VIG=8, S_NOISE=9, S_CRT=10;
+          S_HALFTONE=6, S_SCAN=7, S_VIG=8, S_NOISE=9, S_CRT=10, S_TAPE=11;
 const float PI=3.14159265358979;
 
 const int B4[16]=int[16](0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5);
@@ -346,6 +348,26 @@ vec4 stCrt(ivec2 p){
   rgb*=m*(1.+crt*crtMask*.5);
   return vec4(clamp(rgb,0.,1.),1.);}
 
+
+// Fita magnetica: croma deslocado em sentidos opostos e borrado na horizontal, eco da luminancia, halo nas bordas e riscos de cor.
+// Espelha tapeData() do retroit.html (mesma ordem de clamp e mesmo hash por linha/quadro).
+vec3 ycc(vec3 c){c*=255.;return vec3(.299*c.r+.587*c.g+.114*c.b,128.-.168736*c.r-.331264*c.g+.5*c.b,128.+.5*c.r-.418688*c.g-.081312*c.b);}
+vec4 stTape(ivec2 p){
+  int W=isz().x,sh=int(floor(tpShift+.5)),sm=max(1,int(floor(tpSmear+.5))),gd=max(1,int(floor(tpShift*1.2+.5)));
+  vec4 c0=F(p);
+  float a=0.,b=0.,y2=0.;
+  int ha=sm/2,hb=(sm+2)/2;
+  for(int k=0;k<sm;k++){int xi=clamp(p.x+k-ha,0,W-1);a+=ycc(F(ivec2(clamp(xi+sh,0,W-1),p.y)).rgb).y;}
+  for(int k=0;k<sm+2;k++){int xi=clamp(p.x+k-hb,0,W-1);b+=ycc(F(ivec2(clamp(xi-sh-1,0,W-1),p.y)).rgb).z;}
+  for(int k=0;k<5;k++)y2+=ycc(F(ivec2(clamp(p.x+k-2,0,W-1),p.y)).rgb).x;
+  a/=float(sm);b/=float(sm+2);y2/=5.;
+  float Y=ycc(c0.rgb).x,Ye=ycc(F(ivec2(clamp(p.x-gd,0,W-1),p.y)).rgb).x;
+  float yv=Y+tpGhost*(Ye-Y)+tpRing*(Y-y2),u=a-128.,v=b-128.;
+  if(tpStreak>0.&&rnd(p.y,7,u_frame)<.06*tpStreak){
+    int x0=int(floor(rnd(p.y,8,u_frame)*float(max(1,W-60)))),n=20+int(floor(rnd(p.y,9,u_frame)*40.));
+    if(p.x>=x0&&p.x<x0+n){u+=(rnd(p.y,10,u_frame)-.5)*50.;v+=(rnd(p.y,11,u_frame)-.5)*50.;}}
+  return vec4(clamp(vec3(yv+1.402*v,yv-.344136*u-.714136*v,yv+1.772*u)/255.,0.,1.),c0.a);}
+
 void main(){
   ivec2 p=ivec2(gl_FragCoord.xy);   // linha 0 = primeira linha do quadro (sem inverter)
   vec4 c=vec4(0);
@@ -354,6 +376,7 @@ void main(){
   if(u_stage==S_NTSC)    {o=stNtsc(p);return;}
   if(u_stage==S_DISTORT) {o=stDistort(p);return;}
   if(u_stage==S_CRT)     {o=stCrt(p);return;}
+  if(u_stage==S_TAPE)    {o=stTape(p);return;}
   c=F(p);
   if(u_stage==S_COLOR)         o=stColor(c);
   else if(u_stage==S_PALETTE)  o=stPalette(p,c);
