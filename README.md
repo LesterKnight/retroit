@@ -74,15 +74,15 @@ O script `analog-horror-video.py` lê o preset estático e acrescenta o que muda
 
 `shader/exemplos/gerar-exemplos.py` gera vídeos de 5 s a 30 fps. Os três primeiros usam a tela de calibração (`calibracao.py`: barras de cor, rampa de cinza, grade e dois objetos em movimento); os demais usam um icosaedro low poly texturizado (`lowpoly.py`, só numpy e PIL) e saem **lado a lado, em 1920×1080, com as legendas "ANTES" e "DEPOIS"**: o original e o efeito são renderizados em 1920×1080, cortados no centro (960×1080) e montados.
 
-| Exemplo | O que mostra |
-|---|---|
-| `aviso-guerra-fria` | cadeia do Reel (NTSC, onda, linhas em varredura, fita, JPEG) com o tremor vertical de 2 px (1080×608) |
-| `print-repassado` | cópia de cópia: fita e JPEG pesado, com a grade do JPEG mudando a cada quadro (1080×608) |
-| `varredura-linhas` | linhas repetidas descendo a tela (640×360) |
-| `crt-fosforo` | máscara de fósforo em células arredondadas, bloom, curvatura do tubo, jitter leve, JPEG só na imagem e chuvisco NTSC em pontinhos quadrados de 2,5 a 3 px, em 1920×1080 |
-| `ps1-jitter` | PS1 com jitter leve e lento (sem guia de movimento, 5 fps) numa peça quase parada, lado a lado |
-| `jitter-blocos` | só o jitter de vértice, blocos quadrados de 16 px deslocados até 3 px, lado a lado |
-| `crt-fosforo-lado` | o preset do CRT sobre a peça low poly, lado a lado |
+| Exemplo | O que mostra | Vídeo |
+|---|---|---|
+| `aviso-guerra-fria` | cadeia do Reel (NTSC, onda, linhas em varredura, fita, JPEG) com o tremor vertical de 2 px (1080×608) | [![aviso-guerra-fria](shader/exemplos/saidas/aviso-guerra-fria.png)](shader/exemplos/saidas/aviso-guerra-fria.mp4) |
+| `print-repassado` | cópia de cópia: fita e JPEG pesado, com a grade do JPEG mudando a cada quadro (1080×608) | [![print-repassado](shader/exemplos/saidas/print-repassado.png)](shader/exemplos/saidas/print-repassado.mp4) |
+| `varredura-linhas` | linhas repetidas descendo a tela (640×360) | [![varredura-linhas](shader/exemplos/saidas/varredura-linhas.png)](shader/exemplos/saidas/varredura-linhas.mp4) |
+| `crt-fosforo` | máscara de fósforo em células arredondadas, bloom, curvatura do tubo, jitter leve, JPEG só na imagem e chuvisco NTSC em pontinhos quadrados de 2,5 a 3 px, em 1920×1080 | [![crt-fosforo](shader/exemplos/saidas/crt-fosforo.png)](shader/exemplos/saidas/crt-fosforo.mp4) |
+| `ps1-jitter` | PS1 com jitter leve e lento (sem guia de movimento, 5 fps) numa peça quase parada, lado a lado | [![ps1-jitter](shader/exemplos/saidas/ps1-jitter.png)](shader/exemplos/saidas/ps1-jitter.mp4) |
+| `jitter-blocos` | só o jitter de vértice, blocos quadrados de 16 px deslocados até 3 px, lado a lado | [![jitter-blocos](shader/exemplos/saidas/jitter-blocos.png)](shader/exemplos/saidas/jitter-blocos.mp4) |
+| `crt-fosforo-lado` | o preset do CRT sobre a peça low poly, lado a lado | [![crt-fosforo-lado](shader/exemplos/saidas/crt-fosforo-lado.png)](shader/exemplos/saidas/crt-fosforo-lado.mp4) |
 
 `python shader/exemplos/gerar-exemplos.py crt-fosforo` gera só um. `faixa-chuvisco.py` (mesma pasta) faz a faixa de chuvisco NTSC que desce a tela. Como a peça foi construída: nota "Peça low poly para demos" no vault.
 
