@@ -18,18 +18,18 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DEF = dict(pixel=4, down='box', bits=5, dither='bayer4', ditherAmt=1, gamma=1, lift=0, sat=1, contrast=1,
            tonR=1, tonG=1, tonB=1, halftone=0, dot=8, angle=45, scan=0, scanPx=0, crt=0, crtMask=.5, crtBloom=.4, crtCorner=.05, crtMaskW=3, crtMaskX=0, crtMaskH=0, crtMaskY=1, crtMaskYInt=.5, crtMaskR=1, crtLock=0, crtStagger=0, fpOn=0, fpLines=240, fpBlock=6, vig=0, noise=0, soft=0, alpha='hard',
            palette='snes', palColors=16, palDither=.5, ntOn=0, ntChroma=6, ntDelay=2, ntRing=.3, ntSmear=1,
-           ntNoise=.08, ntGrain=2, ntCNoise=.04, ntSnow=.004, ntWave=3, ntVary=0, ntRs=0, ntPhase=0, ntHeadH=0, ntHeadShift=6, ntChromaV=0, ntInterlace=0, ntBand=0, ntLumaV=0, ntTrackH=0, ntTrackSnow=0, ntEdge=0, ntFieldNoise=0, ntBurst=0, ntChromaGain=1, dsOn=0, dsBarrel=0, dsZoom=1, dsWaveX=0,
-           dsWaveY=0, dsWaveFreq=4, dsGlitch=0, dsGlitchSize=12, dsRgb=0, dsJitter=0, dsPhase=0,
+           ntNoise=.08, ntGrain=2, ntCNoise=.04, ntSnow=.004, ntWave=3, ntVary=0, ntRs=0, ntNest=0, uRatio=0, ntHold=1, ntPhase=0, ntHeadH=0, ntHeadShift=6, ntChromaV=0, ntInterlace=0, ntBand=0, ntLumaV=0, ntTrackH=0, ntTrackSnow=0, ntEdge=0, ntFieldNoise=0, ntBurst=0, ntChromaGain=1, dsOn=0, dsBarrel=0, dsZoom=1, dsWaveX=0,
+           dsWaveY=0, dsWaveFreq=4, dsGlitch=0, dsGlitchSize=12, dsRgb=0, dsJitter=0, dsPhase=0, dsWavePhase=-1, dsLineRep=0, dsLineCount=0, dsLineH=1, dsLineDev=0, dsLineDevRows=2, dsLinePos=-1,
            tpOn=0, tpShift=5, tpSmear=7, tpGhost=.16, tpRing=.35, tpStreak=.5, jpOn=0, jpQ=35, jpPass=2, jpSub=2, jpSharp=0)
 KEYS = ['color', 'pixel', 'palette', 'ntsc', 'distort', 'halftone', 'scan', 'vig', 'noise', 'crt', 'tape', 'jpeg', 'meta']
 ZERO = ['halftone', 'scan', 'vig', 'noise', 'crt']
 RANGES = dict(tpShift=(0, 12), tpSmear=(1, 16), tpGhost=(0, .5), tpRing=(0, 1), tpStreak=(0, 1), jpQ=(3, 100), jpPass=(1, 6), jpSub=(1, 4), jpSharp=(0, 1),
               pixel=(1, 16), bits=(1, 8), ditherAmt=(0, 1), soft=(0, 1), gamma=(.5, 2), lift=(0, .25), sat=(0, 2),
               contrast=(.5, 1.8), palColors=(2, 256), palDither=(0, 1),
-              ntChroma=(0, 24), ntDelay=(0, 12), ntRing=(0, 1), ntSmear=(0, 6), ntNoise=(0, .3), ntGrain=(1, 6),
+              ntChroma=(0, 24), ntDelay=(0, 12), ntRing=(0, 1), ntSmear=(0, 6), ntNoise=(0, .3), ntGrain=(1, 24),
               ntCNoise=(0, .3), ntSnow=(0, .05), ntWave=(0, 12), ntPhase=(0, .6), ntHeadH=(0, 24), ntHeadShift=(0, 40), ntChromaV=(0, 12), ntInterlace=(0, 1), ntBand=(0, .5), ntLumaV=(0, 2), ntTrackH=(0, 40), ntTrackSnow=(0, 1), ntEdge=(0, 1), ntFieldNoise=(0, .5), ntBurst=(0, 1), ntChromaGain=(.5, 1.5), dsBarrel=(-.3, .3), dsZoom=(.8, 1.5),
               dsWaveX=(0, 40), dsWaveY=(0, 40), dsWaveFreq=(1, 40), dsGlitch=(0, 1), dsGlitchSize=(2, 80),
-              dsRgb=(0, 20), dsJitter=(0, 12), dsPhase=(0, 1), halftone=(0, 1), dot=(3, 24), angle=(0, 90), scan=(0, .5), scanPx=(0, 16), crt=(0, 1), tonR=(0, 2), tonG=(0, 2), tonB=(0, 2), crtMask=(0, 1), crtBloom=(0, 1), crtCorner=(0, .2), crtMaskW=(1, 12), crtMaskX=(0, 4), crtMaskH=(0, 12), crtMaskY=(0, 12), crtMaskYInt=(0, 1), crtMaskR=(0, 3), crtLock=(0, 1), crtStagger=(0, 1), fpOn=(0, 1), fpLines=(60, 720), fpBlock=(3, 12),
+              ntNest=(0, 1), uRatio=(0, 6), ntHold=(1, 8), dsRgb=(0, 20), dsJitter=(0, 12), dsLineRep=(0, 60), dsLineCount=(0, 200), dsLineH=(1, 12), dsLineDev=(0, 12), dsLineDevRows=(0, 6), dsLinePos=(-1, 1), dsPhase=(0, 1), dsWavePhase=(-1, 1), halftone=(0, 1), dot=(3, 24), angle=(0, 90), scan=(0, .5), scanPx=(0, 16), crt=(0, 1), tonR=(0, 2), tonG=(0, 2), tonB=(0, 2), crtMask=(0, 1), crtBloom=(0, 1), crtCorner=(0, .2), crtMaskW=(1, 12), crtMaskX=(0, 4), crtMaskH=(0, 12), crtMaskY=(0, 12), crtMaskYInt=(0, 1), crtMaskR=(0, 3), crtLock=(0, 1), crtStagger=(0, 1), fpOn=(0, 1), fpLines=(60, 720), fpBlock=(3, 12),
               vig=(0, .8), noise=(0, .2))
 INTS = ['jpQ', 'jpPass', 'jpSub', 'ntVary', 'ntTrackH', 'ntLumaV', 'ntChromaV', 'ntRs', 'ntHeadH', 'ntHeadShift', 'pixel', 'scanPx', 'bits', 'palColors', 'ntChroma', 'ntDelay', 'ntSmear', 'ntGrain', 'ntWave']
 PALS = json.load(open(os.path.join(HERE, 'palettes.json'), encoding='utf-8'))
@@ -161,7 +161,7 @@ def palette_for(p, rgba):
 # ---------- preset animado (mesma matematica do modo Animar em retroit.html) ----------
 M32 = 0xFFFFFFFF
 STEP1 = {'ntTrackH', 'ntLumaV', 'ntChromaV', 'ntHeadH', 'ntHeadShift', 'pixel', 'bits', 'palColors', 'ntChroma', 'ntDelay', 'ntSmear', 'ntGrain', 'ntWave', 'dsWaveX',
-         'dsWaveY', 'dsWaveFreq', 'dsGlitchSize', 'dsRgb', 'dsJitter', 'dot', 'angle'}
+         'dsWaveY', 'dsWaveFreq', 'dsGlitchSize', 'dsRgb', 'dsJitter', 'dsLineRep', 'dsLineCount', 'dsLineH', 'dsLineDev', 'dsLineDevRows', 'dot', 'angle'}
 
 
 def imul(a, b):
@@ -290,12 +290,12 @@ class Anim:
 
 
 # ---------- GPU ----------
-S = dict(color=0, pixdown=1, pixup=2, palette=3, ntsc=4, distort=5, halftone=6, scan=7, vig=8, noise=9, crt=10, tape=11)
+S = dict(color=0, pixdown=1, pixup=2, palette=3, ntsc=4, distort=5, halftone=6, scan=7, vig=8, noise=9, crt=10, tape=11, jpeg=12, jpsharp=13)
 VS = '#version 330\nvoid main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.-1.,0.,1.);}'
 
 
 
-# ---------- Recompressao JPEG (so aqui, em numpy; nao existe no .frag): espelha jpegData() do retroit.html ----------
+# ---------- Recompressao JPEG em numpy (referencia na CPU; o render usa a versao em GPU do .frag, etapa 12): espelha jpegData() do retroit.html ----------
 JQY = np.array([16,11,10,16,24,40,51,61,12,12,14,19,26,58,60,55,14,13,16,24,40,57,69,56,14,17,22,29,51,87,80,62,18,22,37,56,68,109,103,77,24,35,55,64,81,104,113,92,49,64,78,87,103,121,120,101,72,92,95,98,112,100,103,99], np.float32).reshape(8, 8)
 JQC = np.full((8, 8), 99, np.float32)
 JQC[:4, :4] = [[17,18,24,47],[18,21,26,66],[24,26,56,99],[47,66,99,99]]
@@ -388,11 +388,23 @@ class Renderer:
         self.pal.write(a.tobytes())
         self.pal_ready = True
 
-    def cpu_jpeg(self, cur):
-        """Etapa JPEG: le a textura, roda em numpy e devolve para a textura (nao existe no .frag)."""
+    def cpu_jpeg_np(self, cur):
+        """Versao em numpy (CPU, lenta) da etapa JPEG; so para comparar com a GPU (--jpeg-cpu)."""
         p = self.p
         px = np.frombuffer(self.tex[cur].read(), np.uint8).reshape(self.H, self.W, 4)
         self.tex[cur].write(np.ascontiguousarray(jpeg_np(px, p['jpQ'], p['jpPass'], p['jpSub'], p['jpSharp'])).tobytes())
+        return cur
+
+    def cpu_jpeg(self, cur):
+        """Etapa JPEG na GPU (stJpeg/stJpSharp em retroit.frag): uma passada por jpPass, com a grade 8x8 deslocada como no numpy."""
+        if os.environ.get('RETROIT_JPEG_CPU'): return self.cpu_jpeg_np(cur)
+        p = self.p
+        self.u('jpQ', float(p['jpQ'])); self.u('jpSub', float(p['jpSub'])); self.u('jpSharp', float(p['jpSharp']))
+        if p['jpSharp'] > 0:
+            nxt = 1 - cur; self.run(self.tex[cur], self.fbo[nxt], (self.W, self.H), S['jpsharp']); cur = nxt
+        for i in range(int(p['jpPass'])):
+            self.u('u_jpOff', ((i * 3) % 8, (i * 5) % 8) if i else (0, 0))
+            nxt = 1 - cur; self.run(self.tex[cur], self.fbo[nxt], (self.W, self.H), S['jpeg']); cur = nxt
         return cur
 
     def u(self, name, v):
@@ -408,7 +420,7 @@ class Renderer:
         self.u('down', 0 if p['down'] == 'box' else 1)
         self.u('dither', {'none': 0, 'bayer4': 1, 'bayer8': 2}[p['dither']])
         self.u('alpha', 0 if p['alpha'] == 'hard' else 1)
-        self.u('u_full', (self.W, self.H)); self.u('u_ratio', float(self.ratio))
+        self.u('u_full', (self.W, self.H)); self.u('u_ratio', float(p['uRatio'] if p['uRatio'] > 0 else self.ratio))
         self.u('u_rpx', int(self.rpx)); self.u('u_dot', float(max(2.0, p['dot'] * self.ratio)))
         self.u('u_pixOff', 1 if 'pixel' in p['off'] else 0)
         self.u('u_palN', int(self.palN)); self.u('u_seed', 42)
@@ -426,7 +438,7 @@ class Renderer:
         self.rpx = max(1, int(rnd(p['pixel'] * self.ratio)))
         sw, sh = max(1, -(-self.W // self.rpx)), max(1, -(-self.H // self.rpx))
         small, sfbo = self.small_for(sw, sh)
-        self.static(); self.u('u_frame', n)
+        self.static(); self.u('u_frame', n // max(1, int(p['ntHold'])))
         self.tex[0].write(rgba_bytes)
         cur = 0
         for k in p['order']:
@@ -463,7 +475,7 @@ class Renderer:
                 elif key == self.locked_key:
                     self.set_palette(self.locked_pal)
         self.static()
-        self.u('u_frame', n)
+        self.u('u_frame', n // max(1, int(p['ntHold'])))
         self.tex[0].write(rgba_bytes)
         cur = 0
         for k in p['order']:

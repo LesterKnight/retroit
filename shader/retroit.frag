@@ -26,9 +26,10 @@ uniform float gamma; uniform float lift;  uniform float sat; uniform float contr
 
 uniform float palDither;
 uniform int   ntChroma; uniform int ntDelay; uniform float ntRing; uniform int ntSmear;
-uniform int ntVary; uniform float ntChromaGain; uniform float ntEdge; uniform float ntFieldNoise; uniform float ntBurst; uniform int ntTrackH; uniform float ntTrackSnow; uniform float ntBand; uniform int ntLumaV; uniform int ntChromaV; uniform float ntInterlace; uniform int ntRs; uniform float ntPhase; uniform int ntHeadH; uniform int ntHeadShift; uniform float ntNoise;  uniform int ntGrain; uniform float ntCNoise; uniform float ntSnow; uniform int ntWave;
+uniform float ntNest; uniform int ntVary; uniform float ntChromaGain; uniform float ntEdge; uniform float ntFieldNoise; uniform float ntBurst; uniform int ntTrackH; uniform float ntTrackSnow; uniform float ntBand; uniform int ntLumaV; uniform int ntChromaV; uniform float ntInterlace; uniform int ntRs; uniform float ntPhase; uniform int ntHeadH; uniform int ntHeadShift; uniform float ntNoise;  uniform int ntGrain; uniform float ntCNoise; uniform float ntSnow; uniform int ntWave;
 uniform float dsBarrel; uniform float dsZoom; uniform float dsWaveX; uniform float dsWaveY; uniform float dsWaveFreq;
-uniform float dsGlitch; uniform float dsGlitchSize; uniform float dsRgb; uniform float dsJitter; uniform float dsPhase;
+uniform float dsGlitch; uniform float dsGlitchSize; uniform float dsRgb; uniform float dsJitter; uniform float dsPhase; uniform float dsWavePhase;
+uniform float dsLineRep; uniform float dsLineCount; uniform float dsLineH; uniform float dsLineDev; uniform float dsLineDevRows; uniform float dsLinePos;
 uniform float halftone; uniform float angle; uniform float tonR; uniform float tonG; uniform float tonB; uniform float crt; uniform float crtMask; uniform float crtBloom; uniform float crtCorner; uniform float crtMaskW; uniform float crtMaskX; uniform float crtMaskH; uniform float crtMaskY; uniform float crtMaskYInt; uniform float crtMaskR; uniform float crtLock; uniform float crtStagger;
 uniform float scan; uniform int scanPx; /* scanPx: pixels por linha de TV (0 = automático) */ uniform float vig; uniform float noise;
 
@@ -157,6 +158,30 @@ int rowShift(int y){ // deslocamento horizontal da linha: onda de borda, cabeça
   }
   if(ntInterlace>0.&&(y&1)==1) d+=rnd_i(ntInterlace*3.*u_ratio);
   return d;}
+vec3 hsv2rgbN(vec3 c){vec3 k=clamp(abs(mod(c.x*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);return c.z*mix(vec3(1.),k,c.y);}
+// Cometas aninhados (igual ao ntsc_noise_light do jogo): fileira de cometas de 3 cores numa linha de video perto do rodape, cada um com um menor na linha de cima. Soma em Y e croma.
+void nestedFx(ivec2 p,inout float Y,inout vec2 iq){
+  if(ntNest<=0.||rn(0,991)>=ntNest) return;
+  int k=int(floor(float(isz().y-1-p.y)/u_ratio));
+  int kk=1+int(floor(rn(0,990)*10.));
+  int d=k-kk;
+  if(d<0||d>1) return;
+  int vx=int(floor(float(p.x)/u_ratio));
+  for(int c=-1;c<=0;c++){
+    int ci=vx/26+c;
+    if(rn(ci,kk*7+3)>=.6) continue;
+    float len=8.+16.*rn(ci,kk*7+4);
+    float off=float(ci*26)+floor(rn(ci,kk*7+5)*26.*.5);
+    float ln2=(d==0)?len:len*.55,o2=off+((d==0)?0.:len*.25);
+    float u=(float(vx)-o2)/ln2;
+    if(u<0.||u>=1.) continue;
+    float h0=rn(ci,kk*7+6),h1=fract(h0+.17+.33*rn(ci,kk*7+7)),h2=fract(h1+.17+.33*rn(ci,kk*7+8));
+    vec3 c0=toYIQ(hsv2rgbN(vec3(h0,.55,.95))*255.-vec3(128.6)),c1=toYIQ(hsv2rgbN(vec3(h1,.55,.95))*255.-vec3(128.6)),c2=toYIQ(hsv2rgbN(vec3(h2,.55,.95))*255.-vec3(128.6));
+    vec3 tc=mix(mix(c0,c1,smoothstep(.15,.45,u)),c2,smoothstep(.55,.85,u));
+    float a=(1.-u)*((d==0)?.8:.5);
+    Y+=tc.x*a;iq+=tc.yz*a;
+  }
+}
 vec4 stNtsc(ivec2 p){
   gW=isz().x;gy=p.y;int x=p.x;
   gdx=rowShift(p.y);
@@ -191,6 +216,7 @@ vec4 stNtsc(ivec2 p){
     int xi=int(floor(float(x)/u_ratio));
     if(xi<10){float S[10]=float[10](.105,.445,.877,1.185,1.295,1.257,1.166,1.085,1.031,1.007);Y*=1.+ntEdge*(S[xi]-1.);}
   }
+  nestedFx(p,Y,iq);   // sob o ruido, como no jogo
   float fm=1.+ntFieldNoise*(((p.y&1)==1)?-1.:1.);
   float amp=ntNoise*255.*fm,ampc=ntCNoise*255.*fm;
   int g=max(1,scl(ntGrain)),gc=g*2;
@@ -244,7 +270,7 @@ vec4 getS(vec2 s){ // amostra nearest; fora da imagem => alpha<0
 vec4 stDistort(ivec2 p){
   int W=u_full.x,H=u_full.y;
   float rt=u_ratio;
-  float ax=dsWaveX*rt,ay=dsWaveY*rt,ph=dsPhase*2.*PI,rgb=dsRgb*rt;
+  float ax=dsWaveX*rt,ay=dsWaveY*rt,ph=(dsWavePhase>=0.?dsWavePhase:dsPhase)*2.*PI,rgb=dsRgb*rt;
   int slice=max(1,rnd_i(dsGlitchSize*rt));
   float cx=float(W)/2.,cy=float(H)/2.;
   float u=(float(p.x)-cx)/cx,v=(float(p.y)-cy)/cy;
@@ -259,6 +285,18 @@ vec4 stDistort(ivec2 p){
     if(on) sx+=float(rnd_i((rnd(si,12,ps)-.5)*2.*float(W)*.12*dsGlitch));
   }
   if(dsJitter>0.) sx+=float(rnd_i((rnd(p.y,21,int(floor(dsPhase*1000.+.5)))-.5)*2.*dsJitter*rt));
+  if(dsLineRep>0.5&&dsLineCount>0.){ // grupo: linha original, dsLineDevRows linhas deslocadas dsLineDev px (lado sorteado), depois dsLineRep linhas que copiam a original
+    int R=max(1,rnd_i(dsLineRep)),bl=max(1,rnd_i(dsLineH*rt)),D=max(0,rnd_i(dsLineDevRows))*bl,gh=D+R*bl,ps2=int(floor(dsPhase*1000.+.5));
+    int cnt=max(1,min(rnd_i(dsLineCount),u_full.y/gh));
+    float sh=float(u_full.y)/float(cnt);
+    int s=min(cnt-1,int(float(p.y)/sh));
+    int g0=int(float(s)*sh+(dsLinePos>=0.?dsLinePos:rnd(s,41,ps2))*max(sh-float(gh),0.)); // dsLinePos 0..1: posição vertical fixa (anime 0→1 para o grupo cair); -1 = sorteada
+    int k=p.y-g0;
+    if(k>=0&&k<gh){
+      if(k<D) sx+=(rnd(s,42,ps2)<.5?-1.:1.)*dsLineDev*rt*float(k/bl+1); // escadinha: cada linha de desvio anda mais que a anterior
+      else sy+=float(g0+(k-D)%bl-p.y);
+    }
+  }
   vec4 g=getS(vec2(sx,sy));
   if(!gotS) return vec4(0);
   float r=g.r,b=g.b;
@@ -368,6 +406,59 @@ vec4 stTape(ivec2 p){
     if(p.x>=x0&&p.x<x0+n){u+=(rnd(p.y,10,u_frame)-.5)*50.;v+=(rnd(p.y,11,u_frame)-.5)*50.;}}
   return vec4(clamp(vec3(yv+1.402*v,yv-.344136*u-.714136*v,yv+1.772*u)/255.,0.,1.),c0.a);}
 
+
+// ---- recompressão JPEG na GPU (porte do jpeg_np do retroit-video.py): uma passada = RGB→YCbCr (croma subamostrado s×s),
+// blocos 8×8 (com deslocamento da grade), DCT, quantização, DCT inversa e volta para RGB. Uma passada por chamada (u_jpOff = grade).
+const float JQY[64]=float[64](16.0,11.0,10.0,16.0,24.0,40.0,51.0,61.0,12.0,12.0,14.0,19.0,26.0,58.0,60.0,55.0,14.0,13.0,16.0,24.0,40.0,57.0,69.0,56.0,14.0,17.0,22.0,29.0,51.0,87.0,80.0,62.0,18.0,22.0,37.0,56.0,68.0,109.0,103.0,77.0,24.0,35.0,55.0,64.0,81.0,104.0,113.0,92.0,49.0,64.0,78.0,87.0,103.0,121.0,120.0,101.0,72.0,92.0,95.0,98.0,112.0,100.0,103.0,99.0);
+const float JQC[64]=float[64](17.0,18.0,24.0,47.0,99.0,99.0,99.0,99.0,18.0,21.0,26.0,66.0,99.0,99.0,99.0,99.0,24.0,26.0,56.0,99.0,99.0,99.0,99.0,99.0,47.0,66.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0,99.0);
+const float JC[64]=float[64](0.3535534,0.3535534,0.3535534,0.3535534,0.3535534,0.3535534,0.3535534,0.3535534,0.4903926,0.4157348,0.2777851,0.0975452,-0.0975452,-0.2777851,-0.4157348,-0.4903926,0.4619398,0.1913417,-0.1913417,-0.4619398,-0.4619398,-0.1913417,0.1913417,0.4619398,0.4157348,-0.0975452,-0.4903926,-0.2777851,0.2777851,0.4903926,0.0975452,-0.4157348,0.3535534,-0.3535534,-0.3535534,0.3535534,0.3535534,-0.3535534,-0.3535534,0.3535534,0.2777851,-0.4903926,0.0975452,0.4157348,-0.4157348,-0.0975452,0.4903926,-0.2777851,0.1913417,-0.4619398,0.4619398,-0.1913417,-0.1913417,0.4619398,-0.4619398,0.1913417,0.0975452,-0.2777851,0.4157348,-0.4903926,0.4903926,-0.4157348,0.2777851,-0.0975452);   // JC[u*8+x]
+uniform float jpQ; uniform float jpSub; uniform float jpSharp; uniform ivec2 u_jpOff;
+float jqT(float base){float q=jpQ;float sc=q<50.?5000./q:200.-2.*q;return clamp(floor((base*sc+50.)/100.),1.,255.);}
+float jBlock(in float sm[64],int ix,int iy,bool isC){
+  float T[64];
+  for(int r=0;r<8;r++)for(int v=0;v<8;v++){float a=0.;for(int c=0;c<8;c++)a+=JC[v*8+c]*sm[r*8+c];T[r*8+v]=a;}
+  float o=0.;
+  for(int u=0;u<8;u++){
+    float rv=0.;
+    for(int v=0;v<8;v++){
+      float f=0.;for(int r=0;r<8;r++)f+=JC[u*8+r]*T[r*8+v];
+      float tb=jqT(isC?JQC[u*8+v]:JQY[u*8+v]);
+      f=floor(f/tb+.5)*tb;
+      rv+=JC[v*8+ix]*f;
+    }
+    o+=JC[u*8+iy]*rv;
+  }
+  return o;}
+vec4 stJpeg(ivec2 p){
+  int W=u_full.x,H=u_full.y;int s=max(1,int(floor(jpSub+.5)));
+  ivec2 mx=ivec2(W-1,H-1);
+  vec4 c0=texelFetch(u_tex,p,0);
+  int ix=(p.x+u_jpOff.x)%8,iy=(p.y+u_jpOff.y)%8;
+  int x0=p.x-ix,y0=p.y-iy;
+  float sy_[64];
+  for(int r=0;r<8;r++)for(int c=0;c<8;c++){
+    vec3 q=texelFetch(u_tex,clamp(ivec2(x0+c,y0+r),ivec2(0),mx),0).rgb*255.;
+    sy_[r*8+c]=.299*q.r+.587*q.g+.114*q.b-128.;}
+  float Y=jBlock(sy_,ix,iy,false)+128.;
+  ivec2 cp=p/s;ivec2 cd=(ivec2(W,H)+s-1)/s;
+  int cix=(cp.x+u_jpOff.x)%8,ciy=(cp.y+u_jpOff.y)%8;
+  int cx0=cp.x-cix,cy0=cp.y-ciy;
+  float sb[64],sr[64];
+  for(int r=0;r<8;r++)for(int c=0;c<8;c++){
+    ivec2 cc=clamp(ivec2(cx0+c,cy0+r),ivec2(0),cd-1);
+    vec3 m=vec3(0.);
+    for(int j=0;j<s;j++)for(int i=0;i<s;i++)m+=texelFetch(u_tex,clamp(cc*s+ivec2(i,j),ivec2(0),mx),0).rgb;
+    m*=255./float(s*s);
+    sb[r*8+c]=128.-.168736*m.r-.331264*m.g+.5*m.b-128.;
+    sr[r*8+c]=128.+.5*m.r-.418688*m.g-.081312*m.b-128.;}
+  float cb=jBlock(sb,cix,ciy,true),cr=jBlock(sr,cix,ciy,true);
+  vec3 rgb=vec3(Y+1.402*cr,Y-.344136*cb-.714136*cr,Y+1.772*cb);
+  return vec4(clamp(floor(rgb+.5),0.,255.)/255.,c0.a);}
+vec4 stJpSharp(ivec2 p){
+  ivec2 mx=u_full-1;vec4 c0=texelFetch(u_tex,p,0);vec3 c=c0.rgb*255.,b=vec3(0.);
+  for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++)b+=texelFetch(u_tex,clamp(p+ivec2(dx,dy),ivec2(0),mx),0).rgb*255.;
+  b/=9.;return vec4(clamp(floor(c+jpSharp*2.*(c-b)+.5),0.,255.)/255.,c0.a);}
+
 void main(){
   ivec2 p=ivec2(gl_FragCoord.xy);   // linha 0 = primeira linha do quadro (sem inverter)
   vec4 c=vec4(0);
@@ -377,6 +468,8 @@ void main(){
   if(u_stage==S_DISTORT) {o=stDistort(p);return;}
   if(u_stage==S_CRT)     {o=stCrt(p);return;}
   if(u_stage==S_TAPE)    {o=stTape(p);return;}
+  if(u_stage==12)        {o=stJpeg(p);return;}
+  if(u_stage==13)        {o=stJpSharp(p);return;}
   c=F(p);
   if(u_stage==S_COLOR)         o=stColor(c);
   else if(u_stage==S_PALETTE)  o=stPalette(p,c);

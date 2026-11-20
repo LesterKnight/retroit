@@ -40,6 +40,36 @@ O `preset.json` é o arquivo que o botão **Exportar JSON** do app grava, inclus
 
 ---
 
+## Exemplo real: pós-processar um vídeo de verdade
+
+O RETROit foi usado para dar o visual de fita ao Reel 9:16 do jogo *Mansão 468* (1080×1920, 30 fps). À esquerda o quadro original, à direita o resultado, no meio de uma varredura de linhas repetidas:
+
+<p align="center"><img src="docs/reel-mansao-antes-depois.jpg" width="60%" alt="Antes e depois do Reel Mansão 468"></p>
+
+**A cadeia** (na ordem real das etapas): NTSC do jogo, distorção (jitter por linha, onda horizontal lenta e linhas repetidas em varredura), fita magnética e recompressão JPEG. Tudo renova a 15 fps. Os valores estão em `shader/exemplos/reel-mansao-definitivo.json`.
+
+**Como renderizar um vídeo como esse**
+
+```bash
+pip install numpy pillow moderngl av
+
+# o vídeo todo (sai sem áudio; junte o áudio depois com o ffmpeg)
+python shader/exemplos/reel-mansao-definitivo.py entrada.mp4 saida.mp4
+
+# só os 8 primeiros segundos, com a varredura levando 8 s para descer
+python shader/exemplos/reel-mansao-definitivo.py entrada.mp4 saida.mp4 --segundos 8 --varredura 8
+```
+
+O script `reel-mansao-definitivo.py` lê o preset estático e acrescenta o que muda no tempo, que o JSON de um quadro só não guarda: a fase do jitter, a fase da onda (4× mais lenta que o jitter) e a posição da varredura. Precisa de uma placa de vídeo com OpenGL 3.3.
+
+**Dicas que custaram caro**
+- **Grão:** o preset do NTSC do jogo já escala o grão pela altura (`uRatio`). Somar um `ntGrain` alto em cima dobra a escala e vira quadriculado. Para um vídeo de 1080 px, use `ntGrain` 3 a 6 com `uRatio` 1.
+- **Cor da fita:** `tpShift` (deslocamento do croma) alto separa a cor da forma, e o shader arredonda para pixel inteiro. Os demais controles da fita (borrão, eco, halo, riscos) podem ir ao limite sem afastar a cor.
+- **Ordem:** a varredura (distorção) vem antes da fita e do JPEG, então a compressão processa as linhas repetidas.
+- **Metadados:** a etapa *Metadados* é só para imagens exportadas no app; não a use em vídeo.
+
+---
+
 ## Os efeitos
 
 Os efeitos são **etapas**, e cada uma pode ser ligada, desligada e reordenada arrastando-a na linha da pipeline.
@@ -52,7 +82,7 @@ Os efeitos são **etapas**, e cada uma pode ser ligada, desligada e reordenada a
 | **NTSC / VHS** | Simula o sinal de vídeo analógico: a cor vaza e chega atrasada, bordas com *ringing*, borrão de luminância, ruído, *snow*, onda nas bordas, entrelaçamento, cabeça da fita e rastreio no rodapé. Foi calibrado contra um simulador de referência. |
 | **Distorção** | Curvatura de barril ou almofada, zoom, ondas horizontais e verticais, fatias de glitch, aberração RGB e jitter por linha. |
 | **Fita magnética** | Aberração de croma de fita: croma deslocado em sentidos opostos e borrado na horizontal, eco da luminância, halo nas bordas e riscos de cor. No shader (GPU), igual ao JS. |
-| **Recompressão JPEG** | Blocos 8×8, croma em blocos (4:2:0), gerações com a grade deslocada e nitidez excessiva. Roda em JS no navegador e em numpy no `retroit-video.py`; não está no `.frag`. |
+| **Recompressão JPEG** | Blocos 8×8, croma em blocos (4:2:0), gerações com a grade deslocada e nitidez excessiva. Roda em JS no navegador e na placa de vídeo no `.frag` (etapa própria), usada pelo `retroit-video.py`. |
 | **Halftone** | Pontos de retícula, como em jornal e revista. |
 | **Linhas de TV** | Escurece linhas alternadas, com a espessura escolhida em pixels. |
 | **Vinheta** | Escurece as bordas, como a lente de uma câmera ou de um tubo. |

@@ -151,6 +151,7 @@ uniform int   ntChroma; uniform int ntDelay; uniform float ntRing; uniform int n
 uniform int ntVary; uniform float ntChromaGain; uniform float ntEdge; uniform float ntFieldNoise; uniform float ntBurst; uniform int ntTrackH; uniform float ntTrackSnow; uniform float ntBand; uniform int ntLumaV; uniform int ntChromaV; uniform float ntInterlace; uniform int ntRs; uniform float ntPhase; uniform int ntHeadH; uniform int ntHeadShift; uniform float ntNoise;  uniform int ntGrain; uniform float ntCNoise; uniform float ntSnow; uniform int ntWave;
 uniform float dsBarrel; uniform float dsZoom; uniform float dsWaveX; uniform float dsWaveY; uniform float dsWaveFreq;
 uniform float dsGlitch; uniform float dsGlitchSize; uniform float dsRgb; uniform float dsJitter; uniform float dsPhase;
+uniform float dsLineRep; uniform float dsLineCount; uniform float dsLineH; uniform float dsLineDev; uniform float dsLineDevRows; uniform float dsLinePos;
 uniform float halftone; uniform float angle; uniform float tonR; uniform float tonG; uniform float tonB; uniform float crt; uniform float crtMask; uniform float crtBloom; uniform float crtCorner; uniform float crtMaskW; uniform float crtMaskX; uniform float crtMaskH; uniform float crtMaskY; uniform float crtMaskYInt; uniform float crtMaskR; uniform float crtLock; uniform float crtStagger;
 uniform float scan; uniform int scanPx; /* scanPx: pixels por linha de TV (0 = automático) */ uniform float vig; uniform float noise;
 
@@ -381,6 +382,18 @@ vec4 stDistort(ivec2 p){
     if(on) sx+=float(rnd_i((rnd(si,12,ps)-.5)*2.*float(W)*.12*dsGlitch));
   }
   if(dsJitter>0.) sx+=float(rnd_i((rnd(p.y,21,int(floor(dsPhase*1000.+.5)))-.5)*2.*dsJitter*rt));
+  if(dsLineRep>0.5&&dsLineCount>0.){ // grupo: linha original, dsLineDevRows linhas deslocadas dsLineDev px (lado sorteado), depois dsLineRep linhas que copiam a original
+    int R=max(1,rnd_i(dsLineRep)),bl=max(1,rnd_i(dsLineH*rt)),D=max(0,rnd_i(dsLineDevRows))*bl,gh=D+R*bl,ps2=int(floor(dsPhase*1000.+.5));
+    int cnt=max(1,min(rnd_i(dsLineCount),u_full.y/gh));
+    float sh=float(u_full.y)/float(cnt);
+    int s=min(cnt-1,int(float(p.y)/sh));
+    int g0=int(float(s)*sh+(dsLinePos>=0.?dsLinePos:rnd(s,41,ps2))*max(sh-float(gh),0.)); // dsLinePos 0..1: posição vertical fixa (anime 0→1 para o grupo cair); -1 = sorteada
+    int k=p.y-g0;
+    if(k>=0&&k<gh){
+      if(k<D) sx+=(rnd(s,42,ps2)<.5?-1.:1.)*dsLineDev*rt*float(k/bl+1); // escadinha: cada linha de desvio anda mais que a anterior
+      else sy+=float(g0+(k-D)%bl-p.y);
+    }
+  }
   vec4 g=getS(vec2(sx,sy));
   if(!gotS) return vec4(0);
   float r=g.r,b=g.b;
@@ -509,7 +522,7 @@ void main(){
   else o=c;}
 </script>
 <script>
-const DEF={pixel:4,down:'box',bits:5,dither:'bayer4',ditherAmt:1,gamma:1,lift:0,sat:1,contrast:1,tonR:1,tonG:1,tonB:1,halftone:0,dot:8,angle:45,scan:0,scanPx:0,crt:0,crtMask:.5,crtBloom:.4,crtCorner:.05,crtMaskW:3,crtMaskX:0,crtMaskH:0,crtMaskY:1,crtMaskYInt:.5,crtMaskR:1,crtLock:0,crtStagger:0,fpOn:0,fpLines:240,fpBlock:6,vig:0,noise:0,soft:0,alpha:'hard',palette:'snes',palColors:16,palDither:.5,ntOn:0,ntChroma:6,ntDelay:2,ntRing:.3,ntSmear:1,ntNoise:.08,ntGrain:2,ntCNoise:.04,ntSnow:.004,ntWave:3,ntVary:0,ntRs:0,ntPhase:0,ntHeadH:0,ntHeadShift:6,ntChromaV:0,ntInterlace:0,ntBand:0,ntLumaV:0,ntTrackH:0,ntTrackSnow:0,ntEdge:0,ntFieldNoise:0,ntBurst:0,ntChromaGain:1,dsOn:0,dsBarrel:0,dsZoom:1,dsWaveX:0,dsWaveY:0,dsWaveFreq:4,dsGlitch:0,dsGlitchSize:12,dsRgb:0,dsJitter:0,dsPhase:0,tpOn:0,tpShift:5,tpSmear:7,tpGhost:.16,tpRing:.35,tpStreak:.5,jpOn:0,jpQ:35,jpPass:2,jpSub:2,jpSharp:0,order:['color','pixel','palette','ntsc','distort','halftone','scan','vig','noise'],off:[]};
+const DEF={pixel:4,down:'box',bits:5,dither:'bayer4',ditherAmt:1,gamma:1,lift:0,sat:1,contrast:1,tonR:1,tonG:1,tonB:1,halftone:0,dot:8,angle:45,scan:0,scanPx:0,crt:0,crtMask:.5,crtBloom:.4,crtCorner:.05,crtMaskW:3,crtMaskX:0,crtMaskH:0,crtMaskY:1,crtMaskYInt:.5,crtMaskR:1,crtLock:0,crtStagger:0,fpOn:0,fpLines:240,fpBlock:6,vig:0,noise:0,soft:0,alpha:'hard',palette:'snes',palColors:16,palDither:.5,ntOn:0,ntChroma:6,ntDelay:2,ntRing:.3,ntSmear:1,ntNoise:.08,ntGrain:2,ntCNoise:.04,ntSnow:.004,ntWave:3,ntVary:0,ntRs:0,ntPhase:0,ntHeadH:0,ntHeadShift:6,ntChromaV:0,ntInterlace:0,ntBand:0,ntLumaV:0,ntTrackH:0,ntTrackSnow:0,ntEdge:0,ntFieldNoise:0,ntBurst:0,ntChromaGain:1,dsOn:0,dsBarrel:0,dsZoom:1,dsWaveX:0,dsWaveY:0,dsWaveFreq:4,dsGlitch:0,dsGlitchSize:12,dsRgb:0,dsJitter:0,dsPhase:0,dsLineRep:0,dsLineCount:0,dsLineH:1,dsLineDev:0,dsLineDevRows:2,dsLinePos:-1,tpOn:0,tpShift:5,tpSmear:7,tpGhost:.16,tpRing:.35,tpStreak:.5,jpOn:0,jpQ:35,jpPass:2,jpSub:2,jpSharp:0,order:['color','pixel','palette','ntsc','distort','halftone','scan','vig','noise'],off:[]};
 // Paletas
 const hex=a=>a.map(h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)));
 const PALS={
@@ -575,7 +588,7 @@ const SL=[
  ['color','Cor',[['gamma','Gama (>1 escurece)',.5,2,.05],['lift','Levantar sombras',0,.25,.01],['sat','Saturação',0,2,.05],['contrast','Contraste',.5,1.8,.05],['tonR','Tonalidade: vermelho (ganho)',0,2,.01],['tonG','Tonalidade: verde (ganho)',0,2,.01],['tonB','Tonalidade: azul (ganho)',0,2,.01],]],
  ['palette','Paleta de cores',[['palColors','Máx. de cores (paletas com limite)',2,256,1],['palDither','Dither da paleta',0,1,.05]]],
  ['ntsc','NTSC / VHS',[['ntChroma','Vazamento de cor (px)',0,24,1],['ntDelay','Atraso do croma (px)',0,12,1],['ntRing','Ringing nas bordas',0,1,.05],['ntSmear','Borrão da luminância (px)',0,6,1],['ntNoise','Ruído de luminância',0,.3,.01],['ntGrain','Tamanho do grão (px)',1,6,1],['ntCNoise','Ruído de cor',0,.3,.01],['ntSnow','Snow (riscos brancos)',0,.05,.001],['ntWave','Onda de borda (px)',0,12,1],['ntPhase','Ruído de fase do croma, uma rotação por linha (rad)',0,.6,.01],['ntHeadH','Cabeça de fita: altura (linhas)',0,24,1],['ntHeadShift','Cabeça de fita: deslocamento (px)',0,40,1],['ntChromaV','Vazamento de cor vertical (linhas)',0,12,1],['ntInterlace','Entrelaçamento: deslocamento entre campos',0,1,.05],['ntBand','Banda da luma (ciclos/px, 0 = borrão simples)',0,.5,.01],['ntLumaV','Borrão vertical da luma (passos)',0,2,1],['ntTrackH','Rastreio: altura da faixa no rodapé (linhas)',0,40,1],['ntTrackSnow','Rastreio: chuvisco',0,1,.02],['ntEdge','Borda esquerda: escurece e estoura (transitório do filtro)',0,1,.05],['ntFieldNoise','Diferença de ruído entre campos par e ímpar',0,.5,.01],['ntBurst','Rajada de ruído (3 linhas, chance por quadro)',0,1,.01],['ntChromaGain','Ganho do croma (cor mais fraca ou mais forte)',.5,1.5,.01]]],
- ['distort','Distorção',[['dsBarrel','Curvatura (+ barril, − almofada)',-.3,.3,.01],['dsZoom','Zoom',.8,1.5,.01],['dsWaveX','Onda horizontal (px)',0,40,1],['dsWaveY','Onda vertical (px)',0,40,1],['dsWaveFreq','Frequência das ondas',1,40,1],['dsGlitch','Fatias glitch',0,1,.05],['dsGlitchSize','Altura da fatia (px)',2,80,1],['dsRgb','Aberração RGB (px)',0,20,1],['dsJitter','Jitter por linha (px)',0,12,1],['dsPhase','Fase (anima 0→1)',0,1,.01]]],
+ ['distort','Distorção',[['dsBarrel','Curvatura (+ barril, − almofada)',-.3,.3,.01],['dsZoom','Zoom',.8,1.5,.01],['dsWaveX','Onda horizontal (px)',0,40,1],['dsWaveY','Onda vertical (px)',0,40,1],['dsWaveFreq','Frequência das ondas',1,40,1],['dsGlitch','Fatias glitch',0,1,.05],['dsGlitchSize','Altura da fatia (px)',2,80,1],['dsRgb','Aberração RGB (px)',0,20,1],['dsJitter','Jitter por linha (px)',0,12,1],['dsLineRep','Linhas repetidas (0 = off)',0,60,1],['dsLineCount','Nº total de linhas (por quadro)',0,200,1],['dsLineH','Altura da linha (px)',1,12,1],['dsLineDev','Desvio (px)',0,12,1],['dsLineDevRows','Linhas com desvio',0,6,1],['dsLinePos','Posição vertical (−1 = sorteada; anime 0→1 para cair)',-1,1,.01],['dsPhase','Fase (anima 0→1)',0,1,.01]]],
  ['halftone','Halftone (pontos)',[['halftone','Força',0,1,.05],['dot','Tamanho do ponto (px)',3,24,1],['angle','Ângulo',0,90,1]]],
  ['scan','Linhas de TV',[['scan','Força',0,.5,.01],['scanPx','Pixels (0 = automático)',0,16,1]]],
  ['vig','Vinheta',[['vig','Força',0,.8,.02]]],
@@ -733,7 +746,7 @@ const FX={'Tela curva':{dsBarrel:.012,dsZoom:1.04,dsRgb:1},'Glitch':{dsGlitch:.3
  'Interferência':{dsGlitch:.6,dsGlitchSize:4,dsRgb:2},
  'Onda lenta':{dsWaveX:8,dsWaveFreq:3},
  'Ondulação':{dsWaveX:6,dsWaveY:6,dsWaveFreq:7},
- 'Jitter':{dsJitter:2}};
+ 'Jitter':{dsJitter:2},'Linhas repetidas':{dsLineRep:3,dsLineCount:30,dsLineH:1,dsLineDev:2,dsLineDevRows:2}};
 let curFx='';
 function applyFx(name){
   for(const k in DEF)if(/^ds/.test(k)&&k!=='dsOn')P[k]=DEF[k];
@@ -1188,6 +1201,11 @@ function stDistort(c){
   const k=P.dsBarrel,zoom=P.dsZoom,ax=P.dsWaveX*rt,ay=P.dsWaveY*rt,fq=P.dsWaveFreq,ph=P.dsPhase*2*Math.PI,rgb=P.dsRgb*rt;
   const slice=Math.max(1,Math.round(P.dsGlitchSize*rt)),rnd=mulberry(42+Math.round(P.dsPhase*1000)),shift=new Int32Array(H),jit=new Int32Array(H);
   if(P.dsJitter>0){const jr=mulberry(7+Math.round(P.dsPhase*1000));for(let y=0;y<H;y++)jit[y]=Math.round((jr()-.5)*2*P.dsJitter*rt)}
+  const lsrc=new Int32Array(H),lsh=new Int32Array(H);for(let y=0;y<H;y++)lsrc[y]=y;
+  const lr=Math.round(P.dsLineRep);
+  if(lr>0&&P.dsLineCount>0){const bl=Math.max(1,Math.round(P.dsLineH*rt)),D=Math.max(0,Math.round(P.dsLineDevRows))*bl,gh=D+lr*bl,cnt=Math.max(1,Math.min(Math.round(P.dsLineCount),Math.floor(H/gh))),sh=H/cnt,lrn=mulberry(13+Math.round(P.dsPhase*1000));
+    for(let s2=0;s2<cnt;s2++){const rr=lrn(),g0=Math.floor(s2*sh+(P.dsLinePos>=0?P.dsLinePos:rr)*Math.max(sh-gh,0)),dir=lrn()<.5?-1:1;
+      for(let yy=g0;yy<Math.min(H,g0+gh);yy++){const k=yy-g0;if(k<D)lsh[yy]=Math.round(dir*P.dsLineDev*rt*(Math.floor(k/bl)+1));else lsrc[yy]=g0+(k-D)%bl}}}
   if(P.dsGlitch>0){for(let y=0;y<H;y+=slice){const on=rnd()<P.dsGlitch,v=on?Math.round((rnd()-.5)*2*W*.12*P.dsGlitch):0;for(let yy=y;yy<Math.min(H,y+slice);yy++)shift[yy]=v}}
   const cx=W/2,cy=H/2,asp=W/H;
   const get=(sx,sy,ch)=>{sx=Math.round(sx);sy=Math.round(sy);if(sx<0||sy<0||sx>=W||sy>=H)return -1;return s[(sy*W+sx)*4+ch]};
@@ -1199,7 +1217,7 @@ function stDistort(c){
       let sx=cx+u*cx,sy=cy+v*cy;
       if(ax)sx+=ax*Math.sin(2*Math.PI*(y/H)*fq+ph);
       if(ay)sy+=ay*Math.sin(2*Math.PI*(xx/W)*fq+ph);
-      sx+=shift[y]+jit[y];
+      sx+=shift[y]+jit[y]+lsh[y];sy+=lsrc[y]-y;
       const j=(y*W+xx)*4;
       const a=get(sx,sy,3);
       if(a<0){d[j+3]=0;continue}
