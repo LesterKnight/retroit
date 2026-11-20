@@ -35,10 +35,12 @@ uniform float scan; uniform int scanPx; /* scanPx: pixels por linha de TV (0 = a
 
 uniform float tpShift; uniform float tpSmear; uniform float tpGhost; uniform float tpRing; uniform float tpStreak;
 
+uniform float jtAmt; uniform float jtBlock; uniform float jtDensity; uniform float jtHold;
+
 out vec4 o;
 
 const int S_COLOR=0, S_PIXDOWN=1, S_PIXUP=2, S_PALETTE=3, S_NTSC=4, S_DISTORT=5,
-          S_HALFTONE=6, S_SCAN=7, S_VIG=8, S_NOISE=9, S_CRT=10, S_TAPE=11;
+          S_HALFTONE=6, S_SCAN=7, S_VIG=8, S_NOISE=9, S_CRT=10, S_TAPE=11, S_JITTER=14;
 const float PI=3.14159265358979;
 
 const int B4[16]=int[16](0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5);
@@ -462,6 +464,18 @@ vec4 stJpSharp(ivec2 p){
   for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++)b+=texelFetch(u_tex,clamp(p+ivec2(dx,dy),ivec2(0),mx),0).rgb*255.;
   b/=9.;return vec4(clamp(floor(c+jpSharp*2.*(c-b)+.5),0.,255.)/255.,c0.a);}
 
+// Jitter de vertice (PS1): blocos isolados deslocados por alguns pixels, "quebrando" a textura.
+// O sorteio usa o bloco e a epoca (quadro / jtHold), nao o quadro: o tremor fica parado entre as trocas.
+// Espelha jitterData() do retroit.html.
+vec4 stJitter(ivec2 p){
+  int B=max(2,int(floor(jtBlock+.5))),sh=int(floor(jtAmt+.5));
+  ivec2 b=p/B;
+  int e=int(floor(float(u_frame)/max(1.,floor(jtHold+.5))));
+  ivec2 d=ivec2(0);
+  if(rnd(b.x,b.y,e)<jtDensity)
+    d=ivec2(int(floor(rnd(b.x,b.y,e+4001)*float(2*sh+1)))-sh,int(floor(rnd(b.x,b.y,e+8009)*float(2*sh+1)))-sh);
+  return F(p-d);}
+
 void main(){
   ivec2 p=ivec2(gl_FragCoord.xy);   // linha 0 = primeira linha do quadro (sem inverter)
   vec4 c=vec4(0);
@@ -471,6 +485,7 @@ void main(){
   if(u_stage==S_DISTORT) {o=stDistort(p);return;}
   if(u_stage==S_CRT)     {o=stCrt(p);return;}
   if(u_stage==S_TAPE)    {o=stTape(p);return;}
+  if(u_stage==S_JITTER)  {o=stJitter(p);return;}
   if(u_stage==12)        {o=stJpeg(p);return;}
   if(u_stage==13)        {o=stJpSharp(p);return;}
   c=F(p);

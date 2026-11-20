@@ -20,10 +20,11 @@ DEF = dict(pixel=4, down='box', bits=5, dither='bayer4', ditherAmt=1, gamma=1, l
            palette='snes', palColors=16, palDither=.5, ntOn=0, ntChroma=6, ntDelay=2, ntRing=.3, ntSmear=1,
            ntNoise=.08, ntGrain=2, ntCNoise=.04, ntSnow=.004, ntWave=3, ntVary=0, ntRs=0, ntNest=0, uRatio=0, ntHold=1, ntPhase=0, ntHeadH=0, ntHeadShift=6, ntChromaV=0, ntInterlace=0, ntBand=0, ntLumaV=0, ntTrackH=0, ntTrackSnow=0, ntEdge=0, ntFieldNoise=0, ntBurst=0, ntChromaGain=1, dsOn=0, dsBarrel=0, dsZoom=1, dsWaveX=0,
            dsWaveY=0, dsWaveFreq=4, dsGlitch=0, dsGlitchSize=12, dsRgb=0, dsJitter=0, dsPhase=0, dsWavePhase=-1, dsLineRep=0, dsLineCount=0, dsLineH=1, dsLineDev=0, dsLineDevRows=2, dsLinePos=-1, dsEdge=0,
-           tpOn=0, tpShift=5, tpSmear=7, tpGhost=.16, tpRing=.35, tpStreak=.5, jpOn=0, jpQ=35, jpPass=2, jpSub=2, jpSharp=0)
-KEYS = ['color', 'pixel', 'palette', 'ntsc', 'distort', 'halftone', 'scan', 'vig', 'noise', 'crt', 'tape', 'jpeg', 'meta']
+           jtOn=0, jtAmt=1, jtBlock=8, jtDensity=.25, jtHold=8, tpOn=0, tpShift=5, tpSmear=7, tpGhost=.16, tpRing=.35, tpStreak=.5, jpOn=0, jpQ=35, jpPass=2, jpSub=2, jpSharp=0)
+KEYS = ['color', 'pixel', 'palette', 'ntsc', 'distort', 'halftone', 'scan', 'vig', 'noise', 'crt', 'jitter', 'tape', 'jpeg', 'meta']
 ZERO = ['halftone', 'scan', 'vig', 'noise', 'crt']
-RANGES = dict(tpShift=(0, 12), tpSmear=(1, 16), tpGhost=(0, .5), tpRing=(0, 1), tpStreak=(0, 1), jpQ=(3, 100), jpPass=(1, 6), jpSub=(1, 4), jpSharp=(0, 1),
+RANGES = dict(jtAmt=(1, 6), jtBlock=(2, 32), jtDensity=(0, 1), jtHold=(1, 60),
+              tpShift=(0, 12), tpSmear=(1, 16), tpGhost=(0, .5), tpRing=(0, 1), tpStreak=(0, 1), jpQ=(3, 100), jpPass=(1, 6), jpSub=(1, 4), jpSharp=(0, 1),
               pixel=(1, 16), bits=(1, 8), ditherAmt=(0, 1), soft=(0, 1), gamma=(.5, 2), lift=(0, .25), sat=(0, 2),
               contrast=(.5, 1.8), palColors=(2, 256), palDither=(0, 1),
               ntChroma=(0, 24), ntDelay=(0, 12), ntRing=(0, 1), ntSmear=(0, 6), ntNoise=(0, .3), ntGrain=(1, 24),
@@ -106,6 +107,7 @@ def fresh(o):
         if 'palette' not in o: off.append('palette')
         if not o.get('ntOn'): off.append('ntsc')
         if not o.get('dsOn'): off.append('distort')
+        if not o.get('jtOn'): off.append('jitter')
         if not o.get('tpOn'): off.append('tape')
         if not o.get('jpOn'): off.append('jpeg')
     for k in ZERO:
@@ -290,7 +292,7 @@ class Anim:
 
 
 # ---------- GPU ----------
-S = dict(color=0, pixdown=1, pixup=2, palette=3, ntsc=4, distort=5, halftone=6, scan=7, vig=8, noise=9, crt=10, tape=11, jpeg=12, jpsharp=13)
+S = dict(color=0, pixdown=1, pixup=2, palette=3, ntsc=4, distort=5, halftone=6, scan=7, vig=8, noise=9, crt=10, tape=11, jpeg=12, jpsharp=13, jitter=14)
 VS = '#version 330\nvoid main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);gl_Position=vec4(p*2.-1.,0.,1.);}'
 
 
