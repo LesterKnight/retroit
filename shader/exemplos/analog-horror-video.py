@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Exemplo real: pos-processamento do Reel Mansao 468 (9:16, 30 fps) so com o RETROit.
 
-  python shader/exemplos/reel-mansao-definitivo.py entrada.mp4 saida.mp4 [--segundos 8] [--varredura 8]
+  python shader/exemplos/analog-horror-video.py entrada.mp4 saida.mp4 [--segundos 8] [--varredura 8]
 
 Cadeia (ordem real das etapas): NTSC do jogo -> distorcao (jitter, onda, linhas repetidas em varredura) -> fita magnetica -> JPEG.
 Tudo renova a 15 fps. O preset estatico fica em reel-mansao-definitivo.json; este script acrescenta o que muda no tempo

@@ -54,13 +54,13 @@ O RETROit foi usado para dar o visual de fita ao Reel 9:16 do jogo *Mansão 468*
 pip install numpy pillow moderngl av
 
 # o vídeo todo (sai sem áudio; junte o áudio depois com o ffmpeg)
-python shader/exemplos/reel-mansao-definitivo.py entrada.mp4 saida.mp4
+python shader/exemplos/analog-horror-video.py entrada.mp4 saida.mp4
 
 # só os 8 primeiros segundos, com a varredura levando 8 s para descer
-python shader/exemplos/reel-mansao-definitivo.py entrada.mp4 saida.mp4 --segundos 8 --varredura 8
+python shader/exemplos/analog-horror-video.py entrada.mp4 saida.mp4 --segundos 8 --varredura 8
 ```
 
-O script `reel-mansao-definitivo.py` lê o preset estático e acrescenta o que muda no tempo, que o JSON de um quadro só não guarda: a fase do jitter, a fase da onda (4× mais lenta que o jitter) e a posição da varredura. Precisa de uma placa de vídeo com OpenGL 3.3.
+O script `analog-horror-video.py` lê o preset estático e acrescenta o que muda no tempo, que o JSON de um quadro só não guarda: a fase do jitter, a fase da onda (4× mais lenta que o jitter) e a posição da varredura. Precisa de uma placa de vídeo com OpenGL 3.3.
 
 **Dicas que custaram caro**
 - **Grão:** o preset do NTSC do jogo já escala o grão pela altura (`uRatio`). Somar um `ntGrain` alto em cima dobra a escala e vira quadriculado. Para um vídeo de 1080 px, use `ntGrain` 3 a 6 com `uRatio` 1.
@@ -69,6 +69,22 @@ O script `reel-mansao-definitivo.py` lê o preset estático e acrescenta o que m
 - **Metadados:** a etapa *Metadados* é só para imagens exportadas no app; não a use em vídeo.
 
 ---
+
+## Exemplos com tela de calibração e peça low poly
+
+`shader/exemplos/gerar-exemplos.py` gera vídeos de 5 s a 30 fps. Os três primeiros usam a tela de calibração (`calibracao.py`: barras de cor, rampa de cinza, grade e dois objetos em movimento); os demais usam um icosaedro low poly texturizado (`lowpoly.py`, só numpy e PIL) e saem **lado a lado, em 1920×1080, com as legendas "ANTES" e "DEPOIS"**: o original e o efeito são renderizados em 1920×1080, cortados no centro (960×1080) e montados.
+
+| Exemplo | O que mostra |
+|---|---|
+| `aviso-guerra-fria` | cadeia do Reel (NTSC, onda, linhas em varredura, fita, JPEG) com o tremor vertical de 2 px (1080×608) |
+| `print-repassado` | cópia de cópia: fita e JPEG pesado, com a grade do JPEG mudando a cada quadro (1080×608) |
+| `varredura-linhas` | linhas repetidas descendo a tela (640×360) |
+| `crt-fosforo` | máscara de fósforo em células arredondadas, bloom, curvatura do tubo, jitter leve, JPEG só na imagem e chuvisco NTSC em pontinhos quadrados de 2,5 a 3 px, em 1920×1080 |
+| `ps1-jitter` | PS1 com jitter leve e lento (sem guia de movimento, 5 fps) numa peça quase parada, lado a lado |
+| `jitter-blocos` | só o jitter de vértice, blocos quadrados de 16 px deslocados até 3 px, lado a lado |
+| `crt-fosforo-lado` | o preset do CRT sobre a peça low poly, lado a lado |
+
+`python shader/exemplos/gerar-exemplos.py crt-fosforo` gera só um. `faixa-chuvisco.py` (mesma pasta) faz a faixa de chuvisco NTSC que desce a tela. Como a peça foi construída: nota "Peça low poly para demos" no vault.
 
 ## Os efeitos
 
@@ -79,10 +95,11 @@ Os efeitos são **etapas**, e cada uma pode ser ligada, desligada e reordenada a
 | **Cor** | Gama, sombras levantadas, saturação, contraste e **tonalidade**: um ganho para cada canal (vermelho, verde e azul), para empurrar a imagem para qualquer cor. |
 | **Pixel e cor reduzida** | Esconde a resolução em blocos grandes e reduz os bits de cada canal (5 bits dá os 15 bits do PS1), com **dither Bayer** 4×4 ou 8×8. Reduz por média ou por amostra, e pode suavizar as bordas. |
 | **Paleta** | Troca as cores por uma paleta de console: **adaptativa** (extraída da própria foto), NES, Game Boy, CGA, EGA, C64, PICO-8, MSX, ZX Spectrum, Apple II, Master System, SNES, Mega Drive e outras. |
-| **NTSC / VHS** | Simula o sinal de vídeo analógico: a cor vaza e chega atrasada, bordas com *ringing*, borrão de luminância, ruído, *snow*, onda nas bordas, entrelaçamento, cabeça da fita e rastreio no rodapé. Foi calibrado contra um simulador de referência. |
-| **Distorção** | Curvatura de barril ou almofada, zoom, ondas horizontais e verticais, fatias de glitch, aberração RGB e jitter por linha. A opção **Borda fora da imagem** (`dsEdge`) decide o que aparece quando a onda ou o jitter empurram a imagem: 0 preto (padrão), 1 repete a última coluna e linha, 2 espelha. |
+| **NTSC / VHS** | Simula o sinal de vídeo analógico: a cor vaza e chega atrasada, bordas com *ringing*, borrão de luminância, ruído, *snow*, onda nas bordas, entrelaçamento, cabeça da fita e rastreio no rodapé. Foi calibrado contra um simulador de referência. O grão tem largura (`ntGrain`) e altura (`ntGrainV`, só no modo ntsc-rs; 1 = uma linha) próprias, para pontinhos quadrados em vez de riscos horizontais. |
+| **Distorção** | Curvatura de barril ou almofada, zoom, ondas horizontais e verticais, fatias de glitch, aberração RGB e jitter por linha e tremor vertical da imagem inteira (`dsShake`, em px, a cada N quadros). A opção **Borda fora da imagem** (`dsEdge`) decide o que aparece quando a onda ou o jitter empurram a imagem: 0 preto (padrão), 1 repete a última coluna e linha, 2 espelha. |
 | **Fita magnética** | Aberração de croma de fita: croma deslocado em sentidos opostos e borrado na horizontal, eco da luminância, halo nas bordas e riscos de cor. No shader (GPU), igual ao JS. |
 | **Recompressão JPEG** | Blocos 8×8, croma em blocos (4:2:0), gerações com a grade deslocada e nitidez excessiva. Roda em JS no navegador e na placa de vídeo no `.frag` (etapa própria), usada pelo `retroit-video.py`. |
+| **Jitter de vértice** | Blocos isolados deslocados por alguns pixels, como o tremor de vértices do PS1. O sorteio muda a cada N quadros, não a cada quadro. No modo guiado, só tremem os blocos que se movem entre um quadro e o outro do vídeo. |
 | **Halftone** | Pontos de retícula, como em jornal e revista. |
 | **Linhas de TV** | Escurece linhas alternadas, com a espessura escolhida em pixels. |
 | **Vinheta** | Escurece as bordas, como a lente de uma câmera ou de um tubo. |

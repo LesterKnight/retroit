@@ -26,9 +26,10 @@ uniform float gamma; uniform float lift;  uniform float sat; uniform float contr
 
 uniform float palDither;
 uniform int   ntChroma; uniform int ntDelay; uniform float ntRing; uniform int ntSmear;
-uniform float ntNest; uniform int ntVary; uniform float ntChromaGain; uniform float ntEdge; uniform float ntFieldNoise; uniform float ntBurst; uniform int ntTrackH; uniform float ntTrackSnow; uniform float ntBand; uniform int ntLumaV; uniform int ntChromaV; uniform float ntInterlace; uniform int ntRs; uniform float ntPhase; uniform int ntHeadH; uniform int ntHeadShift; uniform float ntNoise;  uniform int ntGrain; uniform float ntCNoise; uniform float ntSnow; uniform int ntWave;
+uniform float ntNest; uniform int ntVary; uniform float ntChromaGain; uniform float ntEdge; uniform float ntFieldNoise; uniform float ntBurst; uniform int ntTrackH; uniform float ntTrackSnow; uniform float ntBand; uniform int ntLumaV; uniform int ntChromaV; uniform float ntInterlace; uniform int ntRs; uniform float ntPhase; uniform int ntHeadH; uniform int ntHeadShift; uniform float ntNoise;  uniform int ntGrain; uniform int ntGrainV; uniform float ntCNoise; uniform float ntSnow; uniform int ntWave;
 uniform float dsBarrel; uniform float dsZoom; uniform float dsWaveX; uniform float dsWaveY; uniform float dsWaveFreq;
 uniform float dsGlitch; uniform float dsGlitchSize; uniform float dsRgb; uniform float dsJitter; uniform float dsPhase; uniform float dsWavePhase;
+uniform float dsShake; uniform float dsShakeHold;   // tremor vertical da imagem inteira (px, a cada N quadros)
 uniform float dsLineRep; uniform float dsLineCount; uniform float dsLineH; uniform float dsLineDev; uniform float dsLineDevRows; uniform float dsLinePos; uniform float dsEdge;
 uniform float halftone; uniform float angle; uniform float tonR; uniform float tonG; uniform float tonB; uniform float crt; uniform float crtMask; uniform float crtBloom; uniform float crtCorner; uniform float crtMaskW; uniform float crtMaskX; uniform float crtMaskH; uniform float crtMaskY; uniform float crtMaskYInt; uniform float crtMaskR; uniform float crtLock; uniform float crtStagger;
 uniform float scan; uniform int scanPx; /* scanPx: pixels por linha de TV (0 = automático) */ uniform float vig; uniform float noise;
@@ -36,6 +37,8 @@ uniform float scan; uniform int scanPx; /* scanPx: pixels por linha de TV (0 = a
 uniform float tpShift; uniform float tpSmear; uniform float tpGhost; uniform float tpRing; uniform float tpStreak;
 
 uniform float jtAmt; uniform float jtBlock; uniform float jtDensity; uniform float jtHold;
+uniform float jtMove; uniform float jtGain; uniform float jtMoveSim;   // jitter guiado por movimento
+uniform sampler2D u_src; uniform sampler2D u_prev; uniform int u_hasPrev;   // quadro atual e anterior da fonte (so video)
 
 out vec4 o;
 
@@ -221,14 +224,14 @@ vec4 stNtsc(ivec2 p){
   nestedFx(p,Y,iq);   // sob o ruido, como no jogo
   float fm=1.+ntFieldNoise*(((p.y&1)==1)?-1.:1.);
   float amp=ntNoise*255.*fm,ampc=ntCNoise*255.*fm;
-  int g=max(1,scl(ntGrain)),gc=g*2;
+  int g=max(1,scl(ntGrain)),gc=g*2,gv=max(1,scl(ntGrainV)),gvc=ntGrainV>1?gv*2:1;
   if(ntRs==1){ // ruído por hash correlacionado entre 3 linhas (igual ao JS)
     if(ntPhase>0.){ // uma rotação de croma por linha, vizinhança de 6 linhas (veios horizontais de cor)
       float a=0.;for(int i=-2;i<=3;i++){int yy=clamp(p.y+i,0,isz().y-1);float w=(i==-2||i==3)?1.:((i==-1||i==2)?2.:3.);a+=w*rn(0,yy*5+3);}
       float th=(a-6.)*(2./sqrt(28.))*ntPhase,c=cos(th),s2=sin(th);iq=vec2(iq.x*c-iq.y*s2,iq.x*s2+iq.y*c);
     }
-    if(amp>0.) Y+=vn(x/g,p.y,0)*amp;
-    if(ampc>0.){iq.x+=vn(x/gc,p.y,1)*ampc;iq.y+=vn(x/gc,p.y,2)*ampc;}
+    if(amp>0.) Y+=vn(x/g,p.y/gv,0)*amp;
+    if(ampc>0.){iq.x+=vn(x/gc,p.y/gvc,1)*ampc;iq.y+=vn(x/gc,p.y/gvc,2)*ampc;}
   }else{
     if(amp>0.) Y+=(rn(x/g,p.y*3+0)-.5)*2.*amp;
     if(ampc>0.){iq.x+=(rn(x/gc,p.y*3+1)-.5)*2.*ampc;iq.y+=(rn(x/gc,p.y*3+2)-.5)*2.*ampc;}
@@ -289,6 +292,7 @@ vec4 stDistort(ivec2 p){
     bool on=rnd(si,11,ps)<dsGlitch;
     if(on) sx+=float(rnd_i((rnd(si,12,ps)-.5)*2.*float(W)*.12*dsGlitch));
   }
+  if(dsShake>0.){int sa=int(floor(dsShake*rt+.5));int se=int(floor(float(u_frame)/max(1.,floor(dsShakeHold+.5))));sy+=float(int(floor(rnd(se,31,7)*float(2*sa+1)))-sa);} // tremor vertical: um salto por epoca, igual para a imagem toda
   if(dsJitter>0.) sx+=float(rnd_i((rnd(p.y,21,int(floor(dsPhase*1000.+.5)))-.5)*2.*dsJitter*rt));
   if(dsLineRep>0.5&&dsLineCount>0.){ // grupo: linha original, dsLineDevRows linhas deslocadas dsLineDev px (lado sorteado), depois dsLineRep linhas que copiam a original
     int R=max(1,rnd_i(dsLineRep)),bl=max(1,rnd_i(dsLineH*rt)),D=max(0,rnd_i(dsLineDevRows))*bl,gh=D+R*bl,ps2=int(floor(dsPhase*1000.+.5));
@@ -466,13 +470,25 @@ vec4 stJpSharp(ivec2 p){
 
 // Jitter de vertice (PS1): blocos isolados deslocados por alguns pixels, "quebrando" a textura.
 // O sorteio usa o bloco e a epoca (quadro / jtHold), nao o quadro: o tremor fica parado entre as trocas.
-// Espelha jitterData() do retroit.html.
+// Guiado (jtMove=1): a chance do bloco vale jtDensity * clamp(jtGain * movimento * jtMoveSim). Espelha jitterData() do retroit.html.
+// Movimento do bloco: diferenca media de luma (0..1) entre o quadro atual e o anterior da fonte, em 4x4 amostras do bloco.
+// Sem quadro anterior (imagem) vale 1; jtMoveSim e o nivel global (animavel) de movimento.
+float jtMotion(ivec2 b,int B){
+  if(u_hasPrev==0) return 1.;
+  ivec2 mx=u_full-1;float s=0.;
+  for(int j=0;j<4;j++)for(int i=0;i<4;i++){
+    ivec2 q=min(b*B+ivec2((i*B)/4,(j*B)/4),mx);
+    vec3 a=texelFetch(u_src,q,0).rgb*255.,c=texelFetch(u_prev,q,0).rgb*255.;
+    s+=abs(dot(a-c,vec3(.299,.587,.114)));}
+  return s/16./255.;}
 vec4 stJitter(ivec2 p){
   int B=max(2,int(floor(jtBlock+.5))),sh=int(floor(jtAmt+.5));
   ivec2 b=p/B;
   int e=int(floor(float(u_frame)/max(1.,floor(jtHold+.5))));
+  float dens=jtDensity;
+  if(jtMove>.5) dens*=clamp(jtGain*jtMotion(b,B)*jtMoveSim,0.,1.);
   ivec2 d=ivec2(0);
-  if(rnd(b.x,b.y,e)<jtDensity)
+  if(rnd(b.x,b.y,e)<dens)
     d=ivec2(int(floor(rnd(b.x,b.y,e+4001)*float(2*sh+1)))-sh,int(floor(rnd(b.x,b.y,e+8009)*float(2*sh+1)))-sh);
   return F(p-d);}
 

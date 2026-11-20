@@ -18,21 +18,21 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DEF = dict(pixel=4, down='box', bits=5, dither='bayer4', ditherAmt=1, gamma=1, lift=0, sat=1, contrast=1,
            tonR=1, tonG=1, tonB=1, halftone=0, dot=8, angle=45, scan=0, scanPx=0, crt=0, crtMask=.5, crtBloom=.4, crtCorner=.05, crtMaskW=3, crtMaskX=0, crtMaskH=0, crtMaskY=1, crtMaskYInt=.5, crtMaskR=1, crtLock=0, crtStagger=0, fpOn=0, fpLines=240, fpBlock=6, vig=0, noise=0, soft=0, alpha='hard',
            palette='snes', palColors=16, palDither=.5, ntOn=0, ntChroma=6, ntDelay=2, ntRing=.3, ntSmear=1,
-           ntNoise=.08, ntGrain=2, ntCNoise=.04, ntSnow=.004, ntWave=3, ntVary=0, ntRs=0, ntNest=0, uRatio=0, ntHold=1, ntPhase=0, ntHeadH=0, ntHeadShift=6, ntChromaV=0, ntInterlace=0, ntBand=0, ntLumaV=0, ntTrackH=0, ntTrackSnow=0, ntEdge=0, ntFieldNoise=0, ntBurst=0, ntChromaGain=1, dsOn=0, dsBarrel=0, dsZoom=1, dsWaveX=0,
-           dsWaveY=0, dsWaveFreq=4, dsGlitch=0, dsGlitchSize=12, dsRgb=0, dsJitter=0, dsPhase=0, dsWavePhase=-1, dsLineRep=0, dsLineCount=0, dsLineH=1, dsLineDev=0, dsLineDevRows=2, dsLinePos=-1, dsEdge=0,
-           jtOn=0, jtAmt=1, jtBlock=8, jtDensity=.25, jtHold=8, tpOn=0, tpShift=5, tpSmear=7, tpGhost=.16, tpRing=.35, tpStreak=.5, jpOn=0, jpQ=35, jpPass=2, jpSub=2, jpSharp=0)
+           ntNoise=.08, ntGrain=2, ntGrainV=1, ntCNoise=.04, ntSnow=.004, ntWave=3, ntVary=0, ntRs=0, ntNest=0, uRatio=0, ntHold=1, ntPhase=0, ntHeadH=0, ntHeadShift=6, ntChromaV=0, ntInterlace=0, ntBand=0, ntLumaV=0, ntTrackH=0, ntTrackSnow=0, ntEdge=0, ntFieldNoise=0, ntBurst=0, ntChromaGain=1, dsOn=0, dsBarrel=0, dsZoom=1, dsWaveX=0,
+           dsWaveY=0, dsWaveFreq=4, dsGlitch=0, dsGlitchSize=12, dsRgb=0, dsJitter=0, dsShake=0, dsShakeHold=2, dsPhase=0, dsWavePhase=-1, dsLineRep=0, dsLineCount=0, dsLineH=1, dsLineDev=0, dsLineDevRows=2, dsLinePos=-1, dsEdge=0,
+           jtOn=0, jtAmt=1, jtBlock=8, jtDensity=.25, jtHold=8, jtMove=0, jtGain=6, jtMoveSim=1, tpOn=0, tpShift=5, tpSmear=7, tpGhost=.16, tpRing=.35, tpStreak=.5, jpOn=0, jpVary=0, jpQ=35, jpPass=2, jpSub=2, jpSharp=0)
 KEYS = ['color', 'pixel', 'palette', 'ntsc', 'distort', 'halftone', 'scan', 'vig', 'noise', 'crt', 'jitter', 'tape', 'jpeg', 'meta']
 ZERO = ['halftone', 'scan', 'vig', 'noise', 'crt']
-RANGES = dict(jtAmt=(1, 6), jtBlock=(2, 32), jtDensity=(0, 1), jtHold=(1, 60),
-              tpShift=(0, 12), tpSmear=(1, 16), tpGhost=(0, .5), tpRing=(0, 1), tpStreak=(0, 1), jpQ=(3, 100), jpPass=(1, 6), jpSub=(1, 4), jpSharp=(0, 1),
+RANGES = dict(jtAmt=(1, 6), jtBlock=(2, 32), jtDensity=(0, 1), jtHold=(1, 60), jtMove=(0, 1), jtGain=(0, 40), jtMoveSim=(0, 1),
+              tpShift=(0, 12), tpSmear=(1, 16), tpGhost=(0, .5), tpRing=(0, 1), tpStreak=(0, 1), jpQ=(3, 100), jpPass=(1, 6), jpSub=(1, 4), jpSharp=(0, 1), jpVary=(0, 1),
               pixel=(1, 16), bits=(1, 8), ditherAmt=(0, 1), soft=(0, 1), gamma=(.5, 2), lift=(0, .25), sat=(0, 2),
               contrast=(.5, 1.8), palColors=(2, 256), palDither=(0, 1),
-              ntChroma=(0, 24), ntDelay=(0, 12), ntRing=(0, 1), ntSmear=(0, 6), ntNoise=(0, .3), ntGrain=(1, 24),
+              ntChroma=(0, 24), ntDelay=(0, 12), ntRing=(0, 1), ntSmear=(0, 6), ntNoise=(0, .3), ntGrain=(1, 24), ntGrainV=(1, 24),
               ntCNoise=(0, .3), ntSnow=(0, .05), ntWave=(0, 12), ntPhase=(0, .6), ntHeadH=(0, 24), ntHeadShift=(0, 40), ntChromaV=(0, 12), ntInterlace=(0, 1), ntBand=(0, .5), ntLumaV=(0, 2), ntTrackH=(0, 40), ntTrackSnow=(0, 1), ntEdge=(0, 1), ntFieldNoise=(0, .5), ntBurst=(0, 1), ntChromaGain=(.5, 1.5), dsBarrel=(-.3, .3), dsZoom=(.8, 1.5),
               dsWaveX=(0, 40), dsWaveY=(0, 40), dsWaveFreq=(1, 40), dsGlitch=(0, 1), dsGlitchSize=(2, 80),
-              ntNest=(0, 1), uRatio=(0, 6), ntHold=(1, 8), dsRgb=(0, 20), dsJitter=(0, 12), dsLineRep=(0, 60), dsLineCount=(0, 200), dsLineH=(1, 12), dsLineDev=(0, 12), dsLineDevRows=(0, 6), dsLinePos=(-1, 1), dsEdge=(0, 2), dsPhase=(0, 1), dsWavePhase=(-1, 1), halftone=(0, 1), dot=(3, 24), angle=(0, 90), scan=(0, .5), scanPx=(0, 16), crt=(0, 1), tonR=(0, 2), tonG=(0, 2), tonB=(0, 2), crtMask=(0, 1), crtBloom=(0, 1), crtCorner=(0, .2), crtMaskW=(1, 12), crtMaskX=(0, 4), crtMaskH=(0, 12), crtMaskY=(0, 12), crtMaskYInt=(0, 1), crtMaskR=(0, 3), crtLock=(0, 1), crtStagger=(0, 1), fpOn=(0, 1), fpLines=(60, 720), fpBlock=(3, 12),
+              ntNest=(0, 1), uRatio=(0, 6), ntHold=(1, 8), dsRgb=(0, 20), dsJitter=(0, 12), dsShake=(0, 12), dsShakeHold=(1, 8), dsLineRep=(0, 60), dsLineCount=(0, 200), dsLineH=(1, 12), dsLineDev=(0, 12), dsLineDevRows=(0, 6), dsLinePos=(-1, 1), dsEdge=(0, 2), dsPhase=(0, 1), dsWavePhase=(-1, 1), halftone=(0, 1), dot=(3, 24), angle=(0, 90), scan=(0, .5), scanPx=(0, 16), crt=(0, 1), tonR=(0, 2), tonG=(0, 2), tonB=(0, 2), crtMask=(0, 1), crtBloom=(0, 1), crtCorner=(0, .2), crtMaskW=(1, 12), crtMaskX=(0, 4), crtMaskH=(0, 12), crtMaskY=(0, 12), crtMaskYInt=(0, 1), crtMaskR=(0, 3), crtLock=(0, 1), crtStagger=(0, 1), fpOn=(0, 1), fpLines=(60, 720), fpBlock=(3, 12),
               vig=(0, .8), noise=(0, .2))
-INTS = ['jpQ', 'jpPass', 'jpSub', 'ntVary', 'ntTrackH', 'ntLumaV', 'ntChromaV', 'ntRs', 'ntHeadH', 'ntHeadShift', 'pixel', 'scanPx', 'bits', 'palColors', 'ntChroma', 'ntDelay', 'ntSmear', 'ntGrain', 'ntWave']
+INTS = ['jpQ', 'jpPass', 'jpSub', 'ntVary', 'ntTrackH', 'ntLumaV', 'ntChromaV', 'ntRs', 'ntHeadH', 'ntHeadShift', 'pixel', 'scanPx', 'bits', 'palColors', 'ntChroma', 'ntDelay', 'ntSmear', 'ntGrain', 'ntGrainV', 'ntWave']
 PALS = json.load(open(os.path.join(HERE, 'palettes.json'), encoding='utf-8'))
 
 
@@ -162,7 +162,7 @@ def palette_for(p, rgba):
 
 # ---------- preset animado (mesma matematica do modo Animar em retroit.html) ----------
 M32 = 0xFFFFFFFF
-STEP1 = {'ntTrackH', 'ntLumaV', 'ntChromaV', 'ntHeadH', 'ntHeadShift', 'pixel', 'bits', 'palColors', 'ntChroma', 'ntDelay', 'ntSmear', 'ntGrain', 'ntWave', 'dsWaveX',
+STEP1 = {'ntTrackH', 'ntLumaV', 'ntChromaV', 'ntHeadH', 'ntHeadShift', 'pixel', 'bits', 'palColors', 'ntChroma', 'ntDelay', 'ntSmear', 'ntGrain', 'ntGrainV', 'ntWave', 'dsWaveX',
          'dsWaveY', 'dsWaveFreq', 'dsGlitchSize', 'dsRgb', 'dsJitter', 'dsLineRep', 'dsLineCount', 'dsLineH', 'dsLineDev', 'dsLineDevRows', 'dot', 'angle'}
 
 
@@ -304,6 +304,26 @@ JQC[:4, :4] = [[17,18,24,47],[18,21,26,66],[24,26,56,99],[47,66,99,99]]
 JCOS = np.array([[(0.5 / math.sqrt(2) if u == 0 else 0.5) * math.cos((2 * x + 1) * u * math.pi / 16) for x in range(8)] for u in range(8)], np.float32)
 
 
+M32 = 0xFFFFFFFF
+
+
+def hu32(x):
+    x &= M32; x ^= x >> 16; x = (x * 0x7feb352d) & M32; x ^= x >> 15; x = (x * 0x846ca68b) & M32; x ^= x >> 16
+    return x
+
+
+def hrnd(a, b, c, seed=42):
+    """Mesmo sorteio do rnd() do .frag e do hrnd() do retroit.html (0..1)."""
+    i = hu32((c * 0xC2B2AE35 + seed) & M32); m = hu32(((b + 0x85EBCA6B) & M32) ^ i); h = hu32(((a * 0x9E3779B1) & M32) ^ m)
+    return (h >> 8) / 16777216
+
+
+def jp_base(p, fe):
+    """Deslocamento da grade 8x8 do quadro: com jpVary, cada quadro (epoca) recomprime com uma grade diferente."""
+    if not p.get('jpVary'): return 0, 0
+    return int(math.floor(hrnd(fe, 51, 3) * 8)), int(math.floor(hrnd(fe, 52, 3) * 8))
+
+
 def jq_table(base, q):
     sc = 5000 / q if q < 50 else 200 - 2 * q
     return np.clip(np.floor((base * sc + 50) / 100), 1, 255).astype(np.float32)
@@ -321,7 +341,7 @@ def jpeg_plane(pl, tb, ox, oy):
     return out[oy:oy + h, ox:ox + w]
 
 
-def jpeg_np(rgba, q, passes, sub, sharp):
+def jpeg_np(rgba, q, passes, sub, sharp, base=(0, 0), vary=False):
     d = rgba.astype(np.float32)
     H, W = d.shape[:2]
     if sharp > 0:
@@ -341,7 +361,7 @@ def jpeg_np(rgba, q, passes, sub, sharp):
                 pd = np.pad(c, ((0, ch * s - H), (0, cw * s - W)), mode='edge')
                 return pd.reshape(ch, s, cw, s).mean(axis=(1, 3))
             cb, cr = down(cb), down(cr)
-        ox, oy = ((p * 3) % 8, (p * 5) % 8) if p else (0, 0)
+        ox, oy = ((base[0] + p * 3) % 8, (base[1] + p * 5) % 8) if (p or vary) else (0, 0)
         Y = jpeg_plane(Y, tY, ox, oy); cb = jpeg_plane(cb, tC, ox, oy); cr = jpeg_plane(cr, tC, ox, oy)
         if s > 1:
             cb = np.repeat(np.repeat(cb, s, 0), s, 1)[:H, :W]; cr = np.repeat(np.repeat(cr, s, 0), s, 1)[:H, :W]
@@ -369,6 +389,9 @@ class Renderer:
         self.palN, self.pal_ready, self.pal_key = 1, True, None
         self.locked_key, self.locked_pal = None, None   # paleta adaptativa fixada para o video todo
         self.p, self.rpx = None, 1
+        self.src, self.prev = self.mk(W, H), self.mk(W, H)   # fonte atual e anterior (jitter guiado por movimento)
+        self.has_prev = False
+        self.fe = 0   # epoca do quadro (u_frame)
 
     def mk(self, w, h):
         t = self.ctx.texture((w, h), 4)
@@ -394,7 +417,7 @@ class Renderer:
         """Versao em numpy (CPU, lenta) da etapa JPEG; so para comparar com a GPU (--jpeg-cpu)."""
         p = self.p
         px = np.frombuffer(self.tex[cur].read(), np.uint8).reshape(self.H, self.W, 4)
-        self.tex[cur].write(np.ascontiguousarray(jpeg_np(px, p['jpQ'], p['jpPass'], p['jpSub'], p['jpSharp'])).tobytes())
+        self.tex[cur].write(np.ascontiguousarray(jpeg_np(px, p['jpQ'], p['jpPass'], p['jpSub'], p['jpSharp'], jp_base(p, self.fe), bool(p.get('jpVary')))).tobytes())
         return cur
 
     def cpu_jpeg(self, cur):
@@ -405,7 +428,8 @@ class Renderer:
         if p['jpSharp'] > 0:
             nxt = 1 - cur; self.run(self.tex[cur], self.fbo[nxt], (self.W, self.H), S['jpsharp']); cur = nxt
         for i in range(int(p['jpPass'])):
-            self.u('u_jpOff', ((i * 3) % 8, (i * 5) % 8) if i else (0, 0))
+            bx, by = jp_base(p, self.fe)
+            self.u('u_jpOff', ((bx + i * 3) % 8, (by + i * 5) % 8) if (i or p.get('jpVary')) else (0, 0))
             nxt = 1 - cur; self.run(self.tex[cur], self.fbo[nxt], (self.W, self.H), S['jpeg']); cur = nxt
         return cur
 
@@ -426,10 +450,11 @@ class Renderer:
         self.u('u_rpx', int(self.rpx)); self.u('u_dot', float(max(2.0, p['dot'] * self.ratio)))
         self.u('u_pixOff', 1 if 'pixel' in p['off'] else 0)
         self.u('u_palN', int(self.palN)); self.u('u_seed', 42)
-        self.u('u_tex', 0); self.u('u_pal', 1)
+        self.u('u_tex', 0); self.u('u_pal', 1); self.u('u_src', 2); self.u('u_prev', 3)
+        self.u('u_hasPrev', 1 if (self.has_prev and p.get('jtMove')) else 0)
 
     def run(self, src, dst_fbo, size, stage):
-        src.use(0); self.pal.use(1)
+        src.use(0); self.pal.use(1); self.src.use(2); self.prev.use(3)
         self.u('u_stage', stage); self.u('u_out', size)
         dst_fbo.use(); self.ctx.viewport = (0, 0, size[0], size[1])
         self.vao.render(self.mgl.TRIANGLES, vertices=3)
@@ -440,7 +465,7 @@ class Renderer:
         self.rpx = max(1, int(rnd(p['pixel'] * self.ratio)))
         sw, sh = max(1, -(-self.W // self.rpx)), max(1, -(-self.H // self.rpx))
         small, sfbo = self.small_for(sw, sh)
-        self.static(); self.u('u_frame', n // max(1, int(p['ntHold'])))
+        self.static(); self.fe = n // max(1, int(p['ntHold'])); self.u('u_frame', self.fe)
         self.tex[0].write(rgba_bytes)
         cur = 0
         for k in p['order']:
@@ -477,8 +502,9 @@ class Renderer:
                 elif key == self.locked_key:
                     self.set_palette(self.locked_pal)
         self.static()
-        self.u('u_frame', n // max(1, int(p['ntHold'])))
+        self.fe = n // max(1, int(p['ntHold'])); self.u('u_frame', self.fe)
         self.tex[0].write(rgba_bytes)
+        if p.get('jtMove') and 'jitter' not in p['off']: self.src.write(rgba_bytes)
         cur = 0
         for k in p['order']:
             if k == 'meta' or k in p['off']: continue
@@ -496,6 +522,8 @@ class Renderer:
             self.u('u_palN', int(self.palN))
             nxt = 1 - cur
             self.run(self.tex[cur], self.fbo[nxt], (self.W, self.H), S[k]); cur = nxt
+        if p.get('jtMove') and 'jitter' not in p['off']:
+            self.prev.write(rgba_bytes); self.has_prev = True
         return self.fbo[cur].read(components=4)
 
 
