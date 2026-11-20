@@ -80,7 +80,7 @@ Os efeitos são **etapas**, e cada uma pode ser ligada, desligada e reordenada a
 | **Pixel e cor reduzida** | Esconde a resolução em blocos grandes e reduz os bits de cada canal (5 bits dá os 15 bits do PS1), com **dither Bayer** 4×4 ou 8×8. Reduz por média ou por amostra, e pode suavizar as bordas. |
 | **Paleta** | Troca as cores por uma paleta de console: **adaptativa** (extraída da própria foto), NES, Game Boy, CGA, EGA, C64, PICO-8, MSX, ZX Spectrum, Apple II, Master System, SNES, Mega Drive e outras. |
 | **NTSC / VHS** | Simula o sinal de vídeo analógico: a cor vaza e chega atrasada, bordas com *ringing*, borrão de luminância, ruído, *snow*, onda nas bordas, entrelaçamento, cabeça da fita e rastreio no rodapé. Foi calibrado contra um simulador de referência. |
-| **Distorção** | Curvatura de barril ou almofada, zoom, ondas horizontais e verticais, fatias de glitch, aberração RGB e jitter por linha. |
+| **Distorção** | Curvatura de barril ou almofada, zoom, ondas horizontais e verticais, fatias de glitch, aberração RGB e jitter por linha. A opção **Borda fora da imagem** (`dsEdge`) decide o que aparece quando a onda ou o jitter empurram a imagem: 0 preto (padrão), 1 repete a última coluna e linha, 2 espelha. |
 | **Fita magnética** | Aberração de croma de fita: croma deslocado em sentidos opostos e borrado na horizontal, eco da luminância, halo nas bordas e riscos de cor. No shader (GPU), igual ao JS. |
 | **Recompressão JPEG** | Blocos 8×8, croma em blocos (4:2:0), gerações com a grade deslocada e nitidez excessiva. Roda em JS no navegador e na placa de vídeo no `.frag` (etapa própria), usada pelo `retroit-video.py`. |
 | **Halftone** | Pontos de retícula, como em jornal e revista. |

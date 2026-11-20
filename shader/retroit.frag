@@ -29,7 +29,7 @@ uniform int   ntChroma; uniform int ntDelay; uniform float ntRing; uniform int n
 uniform float ntNest; uniform int ntVary; uniform float ntChromaGain; uniform float ntEdge; uniform float ntFieldNoise; uniform float ntBurst; uniform int ntTrackH; uniform float ntTrackSnow; uniform float ntBand; uniform int ntLumaV; uniform int ntChromaV; uniform float ntInterlace; uniform int ntRs; uniform float ntPhase; uniform int ntHeadH; uniform int ntHeadShift; uniform float ntNoise;  uniform int ntGrain; uniform float ntCNoise; uniform float ntSnow; uniform int ntWave;
 uniform float dsBarrel; uniform float dsZoom; uniform float dsWaveX; uniform float dsWaveY; uniform float dsWaveFreq;
 uniform float dsGlitch; uniform float dsGlitchSize; uniform float dsRgb; uniform float dsJitter; uniform float dsPhase; uniform float dsWavePhase;
-uniform float dsLineRep; uniform float dsLineCount; uniform float dsLineH; uniform float dsLineDev; uniform float dsLineDevRows; uniform float dsLinePos;
+uniform float dsLineRep; uniform float dsLineCount; uniform float dsLineH; uniform float dsLineDev; uniform float dsLineDevRows; uniform float dsLinePos; uniform float dsEdge;
 uniform float halftone; uniform float angle; uniform float tonR; uniform float tonG; uniform float tonB; uniform float crt; uniform float crtMask; uniform float crtBloom; uniform float crtCorner; uniform float crtMaskW; uniform float crtMaskX; uniform float crtMaskH; uniform float crtMaskY; uniform float crtMaskYInt; uniform float crtMaskR; uniform float crtLock; uniform float crtStagger;
 uniform float scan; uniform int scanPx; /* scanPx: pixels por linha de TV (0 = automático) */ uniform float vig; uniform float noise;
 
@@ -265,6 +265,9 @@ vec4 stNtsc(ivec2 p){
 bool gotS;
 vec4 getS(vec2 s){ // amostra nearest; fora da imagem => alpha<0
   ivec2 q=ivec2(floor(s+.5));
+  if(dsEdge>.5){ // borda: 1 = repete a última coluna/linha, 2 = espelha (vai e volta)
+    if(dsEdge<1.5) q=clamp(q,ivec2(0),u_full-1);
+    else{ivec2 m=((q%(2*u_full))+2*u_full)%(2*u_full); q=ivec2(m.x>=u_full.x?2*u_full.x-1-m.x:m.x, m.y>=u_full.y?2*u_full.y-1-m.y:m.y);}}
   if(q.x<0||q.y<0||q.x>=u_full.x||q.y>=u_full.y){gotS=false;return vec4(0);}
   gotS=true;return texelFetch(u_tex,q,0);}
 vec4 stDistort(ivec2 p){

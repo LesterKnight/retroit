@@ -14,7 +14,7 @@ import numpy as np, av
 HERE = os.path.dirname(os.path.abspath(__file__))
 sp = importlib.util.spec_from_file_location('rv', os.path.join(HERE, '..', 'retroit-video.py'))
 rv = importlib.util.module_from_spec(sp); sp.loader.exec_module(rv)
-PAD = 60   # margem com borda replicada: a onda horizontal nao mostra a borda do quadro
+PAD_PADRAO = 60   # margem com borda replicada (so quando o preset nao tem dsEdge > 0): a onda nao mostra a borda do quadro
 
 
 def main():
@@ -28,6 +28,7 @@ def main():
     inp = av.open(a.entrada); vs = inp.streams.video[0]
     W, H = vs.codec_context.width, vs.codec_context.height
     fps = float(vs.average_rate)
+    PAD = 0 if P.get('dsEdge', 0) > 0 else PAD_PADRAO   # dsEdge (1 repete, 2 espelha) faz o shader preencher a borda; sem margem
     r = rv.Renderer(W + 2 * PAD, H)
     out = av.open(a.saida, 'w'); rate = Fraction(fps).limit_denominator(1000)
     v = out.add_stream('libx264', rate=rate); v.width, v.height, v.pix_fmt, v.options = W & ~1, H & ~1, 'yuv420p', {'crf': str(a.crf)}
